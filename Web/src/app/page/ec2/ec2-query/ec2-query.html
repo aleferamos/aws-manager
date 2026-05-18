@@ -1,0 +1,191 @@
+<section class="ec2-page">
+  <header class="ec2-header">
+    <div class="ec2-title-block">
+      <span class="ec2-eyebrow">{{ t.eyebrow }}</span>
+      <h1>{{ t.title }}</h1>
+      <p>{{ t.subtitle }}</p>
+    </div>
+
+    <app-button
+      [ariaLabel]="t.reload"
+      icon="refresh"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="ec2Loading"
+      [disabled]="!selectedCredential"
+      (pressed)="reload()"
+    />
+  </header>
+
+  @if (!selectedCredential) {
+    <app-card class="ec2-empty-card" padding="lg" [outlined]="true">
+      <span class="ec2-empty-icon" aria-hidden="true">
+        <span class="material-symbols-rounded">
+          vpn_key_off
+        </span>
+      </span>
+
+      <div class="ec2-empty-copy">
+        <h2>{{ t.emptyCredential.title }}</h2>
+        <p>{{ t.emptyCredential.description }}</p>
+      </div>
+    </app-card>
+  } @else {
+    <div class="ec2-stats">
+      <app-card class="ec2-stat-card" [compact]="true">
+        <span class="ec2-stat-icon ec2-stat-icon-brand" aria-hidden="true">
+          <span class="material-symbols-rounded">
+            dns
+          </span>
+        </span>
+
+        <span class="ec2-stat-label">{{ t.stats.total }}</span>
+        <strong class="ec2-stat-value">{{ totalInstances }}</strong>
+      </app-card>
+
+      <app-card class="ec2-stat-card" [compact]="true">
+        <span class="ec2-stat-icon ec2-stat-icon-success" aria-hidden="true">
+          <span class="material-symbols-rounded">
+            play_circle
+          </span>
+        </span>
+
+        <span class="ec2-stat-label">{{ t.stats.running }}</span>
+        <strong class="ec2-stat-value">{{ runningInstances }}</strong>
+      </app-card>
+    </div>
+
+    <app-card class="ec2-table-card" padding="lg" [outlined]="true">
+      <div class="ec2-context">
+        <span class="material-symbols-rounded" aria-hidden="true">vpn_key</span>
+        <strong>{{ selectedCredential.name }}</strong>
+        <span>{{ selectedRegion }}</span>
+      </div>
+
+      <app-table
+        [columns]="columns"
+        [data]="tableRows"
+        [loading]="ec2Loading"
+        [loadingLabel]="t.table.loading"
+        [emptyTitle]="t.table.emptyTitle"
+        [emptyDescription]="t.table.emptyDescription"
+        (cellSelected)="handleCellSelected($event)"
+      />
+    </app-card>
+  }
+
+  <app-dialog
+    [open]="detailDialogOpen"
+    [title]="detailTitle"
+    [subtitle]="t.detail.subtitle"
+    [closeAriaLabel]="t.close"
+    icon="dns"
+    size="xl"
+    (closed)="closeDetailDialog()"
+  >
+    <div class="ec2-detail">
+      @if (detailLoading) {
+        <div class="ec2-detail-loading">
+          <span class="material-symbols-rounded" aria-hidden="true">progress_activity</span>
+          <span>{{ t.elasticIps.loading }}</span>
+        </div>
+      }
+
+      <section class="ec2-connect">
+        <div class="ec2-connect-header">
+          <div>
+            <h3>{{ t.connect.title }}</h3>
+            <p>{{ t.connect.subtitle }}</p>
+          </div>
+
+          <span class="ec2-connect-status" [class.ec2-connect-status-warning]="showSshWarning">
+            {{ t.connect.sshPort }}: {{ sshPortStatus }}
+          </span>
+        </div>
+
+        @if (showSshWarning) {
+          <div class="ec2-connect-warning">
+            <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+            <span>{{ t.connect.warning }}</span>
+          </div>
+        }
+
+        <dl class="ec2-connect-grid">
+          @for (field of connectFields; track field.label) {
+            <div class="ec2-connect-item">
+              <dt>{{ field.label }}</dt>
+              <dd>{{ field.value }}</dd>
+            </div>
+          }
+        </dl>
+
+        <div class="ec2-connect-commands">
+          @if (selectedInstance?.sshKeyPermissionCommand) {
+            <div class="ec2-command">
+              <span>{{ t.connect.permissionCommand }}</span>
+              <code>{{ selectedInstance?.sshKeyPermissionCommand }}</code>
+            </div>
+          }
+
+          @if (selectedInstance?.sshCommand) {
+            <div class="ec2-command">
+              <span>{{ t.connect.sshCommand }}</span>
+              <code>{{ selectedInstance?.sshCommand }}</code>
+            </div>
+          } @else {
+            <div class="ec2-connect-unavailable">
+              {{ t.connect.unavailable }}
+            </div>
+          }
+        </div>
+      </section>
+
+      <dl class="ec2-detail-grid">
+        @for (field of detailFields; track field.label) {
+          <div class="ec2-detail-item">
+            <dt>{{ field.label }}</dt>
+            <dd>{{ field.value }}</dd>
+          </div>
+        }
+      </dl>
+
+      <div class="ec2-detail-tables">
+        <section class="ec2-detail-section">
+          <h3>{{ t.securityGroups.title }} ({{ securityGroupRows.length }})</h3>
+
+          <app-table
+            [columns]="securityGroupColumns"
+            [data]="securityGroupRows"
+            [loading]="detailLoading"
+            [loadingLabel]="t.securityGroups.loading"
+            [emptyTitle]="t.securityGroups.emptyTitle"
+            [emptyDescription]="t.securityGroups.emptyDescription"
+            (cellSelected)="handleSecurityGroupCellSelected($event)"
+          />
+        </section>
+
+        <section class="ec2-detail-section">
+          <h3>{{ t.elasticIps.title }} ({{ elasticIpRows.length }})</h3>
+
+          <app-table
+            [columns]="elasticIpColumns"
+            [data]="elasticIpRows"
+            [loading]="detailLoading"
+            [loadingLabel]="t.elasticIps.loading"
+            [emptyTitle]="t.elasticIps.emptyTitle"
+            [emptyDescription]="t.elasticIps.emptyDescription"
+          />
+        </section>
+      </div>
+    </div>
+  </app-dialog>
+
+  <app-security-group-detail-dialog
+    [open]="securityGroupDetailDialogOpen"
+    [groupId]="selectedSecurityGroupId"
+    [credential]="selectedCredential"
+    [region]="selectedRegion"
+    (closed)="closeSecurityGroupDetailDialog()"
+    (changed)="handleSecurityGroupChanged()"
+  />
+</section>

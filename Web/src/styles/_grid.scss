@@ -1,0 +1,431 @@
+// ============================================================
+// AWS Manager Design System — Grid & Layout
+// ============================================================
+// Uso:
+//   <div class="container">
+//     <div class="row">
+//       <div class="col-12 col-md-6 col-lg-4"> ... </div>
+//       <div class="col-12 col-md-6 col-lg-8"> ... </div>
+//     </div>
+//   </div>
+// ============================================================
+
+@use 'sass:map';
+
+// --- Config ---
+$grid-columns:    12;
+$grid-gutter-xs:  12px;
+$grid-gutter-sm:  16px;
+$grid-gutter-md:  20px;
+$grid-gutter-lg:  24px;
+$grid-gutter-xl:  24px;
+
+// --- Breakpoints (mobile-first) ---
+$breakpoints: (
+  'xs':  0px,
+  'sm':  576px,
+  'md':  768px,
+  'lg':  1024px,
+  'xl':  1280px,
+);
+
+$gutters: (
+  'xs': $grid-gutter-xs,
+  'sm': $grid-gutter-sm,
+  'md': $grid-gutter-md,
+  'lg': $grid-gutter-lg,
+  'xl': $grid-gutter-xl,
+);
+
+// --- Container max-widths ---
+$container-max: (
+  'xs':  100%,
+  'sm':  540px,
+  'md':  720px,
+  'lg':  960px,
+  'xl':  1200px,
+);
+
+// --- Mixin: respond-to ---
+@mixin respond-to($bp) {
+  $min: map.get($breakpoints, $bp);
+  @if $min == 0px {
+    @content;
+  } @else {
+    @media (min-width: $min) {
+      @content;
+    }
+  }
+}
+
+// ============================================================
+// CONTAINER
+// ============================================================
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: $grid-gutter-xs;
+  padding-left:  $grid-gutter-xs;
+
+  @each $bp, $max in $container-max {
+    @include respond-to($bp) {
+      max-width: $max;
+      $g: map.get($gutters, $bp);
+      padding-right: $g;
+      padding-left:  $g;
+    }
+  }
+}
+
+.container-fluid {
+  width: 100%;
+  padding-right: $grid-gutter-xs;
+  padding-left:  $grid-gutter-xs;
+
+  @each $bp, $g in $gutters {
+    @include respond-to($bp) {
+      padding-right: $g;
+      padding-left:  $g;
+    }
+  }
+}
+
+// ============================================================
+// ROW
+// ============================================================
+.row {
+  display: grid;
+  grid-template-columns: repeat($grid-columns, 1fr);
+  gap: $grid-gutter-xs;
+
+  @include respond-to('sm') { gap: $grid-gutter-sm; }
+  @include respond-to('md') { gap: $grid-gutter-md; }
+  @include respond-to('lg') { gap: $grid-gutter-lg; }
+  @include respond-to('xl') { gap: $grid-gutter-xl; }
+}
+
+// Row sem gutter
+.row-no-gap { gap: 0; }
+
+// Row com gap customizado
+.row-gap-sm { gap: 8px; }
+.row-gap-lg { gap: 32px; }
+
+// ============================================================
+// COLUNAS — col-{bp}-{n}
+// ============================================================
+@each $bp, $min in $breakpoints {
+  @include respond-to($bp) {
+
+    // col-{bp}-{1..12}
+    @for $i from 1 through $grid-columns {
+      .col-#{$bp}-#{$i} {
+        grid-column: span #{$i};
+      }
+    }
+
+    // col-{bp}-auto — shrinks to content
+    .col-#{$bp}-auto {
+      grid-column: auto;
+      width: auto;
+    }
+
+    // col-{bp}-fill — fills remaining space
+    .col-#{$bp}-fill {
+      grid-column: 1 / -1;
+    }
+
+    // offset-{bp}-{n} — empurra n colunas
+    @for $i from 1 through ($grid-columns - 1) {
+      .offset-#{$bp}-#{$i} {
+        grid-column-start: #{$i + 1};
+      }
+    }
+
+    // order-{bp}-{n}
+    @for $i from 1 through $grid-columns {
+      .order-#{$bp}-#{$i} {
+        order: #{$i};
+      }
+    }
+    .order-#{$bp}-first { order: -1; }
+    .order-#{$bp}-last  { order: 999; }
+  }
+}
+
+// col-{n} base — use quando nao precisar de responsividade
+@for $i from 1 through $grid-columns {
+  .col-#{$i} { grid-column: span #{$i}; }
+}
+
+// Garante que col-bp-n venca col-n em telas maiores
+@each $bp, $min in $breakpoints {
+  @if $min != 0px {
+    @media (min-width: $min) {
+      @for $i from 1 through $grid-columns {
+        .col-#{$bp}-#{$i} { grid-column: span #{$i} !important; }
+      }
+    }
+  }
+}
+
+// ============================================================
+// DISPLAY UTILITIES
+// ============================================================
+@each $bp, $min in $breakpoints {
+  @include respond-to($bp) {
+    .d-#{$bp}-none    { display: none !important; }
+    .d-#{$bp}-block   { display: block !important; }
+    .d-#{$bp}-inline  { display: inline !important; }
+    .d-#{$bp}-flex    { display: flex !important; }
+    .d-#{$bp}-grid    { display: grid !important; }
+  }
+}
+
+// Sem prefixo
+.d-none   { display: none !important; }
+.d-block  { display: block !important; }
+.d-flex   { display: flex !important; }
+.d-grid   { display: grid !important; }
+.d-inline { display: inline !important; }
+
+// ============================================================
+// FLEX UTILITIES
+// ============================================================
+.flex-row    { flex-direction: row; }
+.flex-col    { flex-direction: column; }
+.flex-wrap   { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+.flex-1      { flex: 1; }
+.flex-auto   { flex: auto; }
+.flex-none   { flex: none; }
+
+// Justify
+.justify-start   { justify-content: flex-start; }
+.justify-end     { justify-content: flex-end; }
+.justify-center  { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around  { justify-content: space-around; }
+.justify-evenly  { justify-content: space-evenly; }
+
+// Align
+.align-start    { align-items: flex-start; }
+.align-end      { align-items: flex-end; }
+.align-center   { align-items: center; }
+.align-baseline { align-items: baseline; }
+.align-stretch  { align-items: stretch; }
+
+// Self
+.self-start  { align-self: flex-start; }
+.self-end    { align-self: flex-end; }
+.self-center { align-self: center; }
+
+// Gap (flex/grid)
+.gap-1  { gap: 4px; }
+.gap-2  { gap: 8px; }
+.gap-3  { gap: 12px; }
+.gap-4  { gap: 16px; }
+.gap-5  { gap: 20px; }
+.gap-6  { gap: 24px; }
+.gap-8  { gap: 32px; }
+.gap-10 { gap: 40px; }
+.gap-12 { gap: 48px; }
+
+// ============================================================
+// SPACING — m-{n} / p-{n}
+// Escala base 4px: 1=4px, 2=8px, 3=12px, 4=16px...
+// ============================================================
+$space-scale: (
+  0:  0px,
+  1:  4px,
+  2:  8px,
+  3:  12px,
+  4:  16px,
+  5:  20px,
+  6:  24px,
+  7:  28px,
+  8:  32px,
+  9:  36px,
+  10: 40px,
+  11: 44px,
+  12: 48px,
+  14: 56px,
+  16: 64px,
+  20: 80px,
+  24: 96px,
+);
+
+@each $key, $val in $space-scale {
+  .m-#{$key}  { margin: $val !important; }
+  .mt-#{$key} { margin-top: $val !important; }
+  .mb-#{$key} { margin-bottom: $val !important; }
+  .ml-#{$key} { margin-left: $val !important; }
+  .mr-#{$key} { margin-right: $val !important; }
+  .mx-#{$key} { margin-left: $val !important; margin-right: $val !important; }
+  .my-#{$key} { margin-top: $val !important; margin-bottom: $val !important; }
+
+  .p-#{$key}  { padding: $val !important; }
+  .pt-#{$key} { padding-top: $val !important; }
+  .pb-#{$key} { padding-bottom: $val !important; }
+  .pl-#{$key} { padding-left: $val !important; }
+  .pr-#{$key} { padding-right: $val !important; }
+  .px-#{$key} { padding-left: $val !important; padding-right: $val !important; }
+  .py-#{$key} { padding-top: $val !important; padding-bottom: $val !important; }
+}
+
+// Margin auto
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.ml-auto { margin-left: auto !important; }
+.mr-auto { margin-right: auto !important; }
+
+// ============================================================
+// WIDTH / HEIGHT UTILITIES
+// ============================================================
+.w-full    { width: 100%; }
+.w-screen  { width: 100vw; }
+.w-auto    { width: auto; }
+.w-half    { width: 50%; }
+.h-full    { height: 100%; }
+.h-screen  { height: 100vh; }
+.h-auto    { height: auto; }
+.min-h-screen { min-height: 100vh; }
+
+// ============================================================
+// POSITION UTILITIES
+// ============================================================
+.relative { position: relative; }
+.absolute { position: absolute; }
+.sticky   { position: sticky; }
+
+// ============================================================
+// OVERFLOW
+// ============================================================
+.overflow-hidden { overflow: hidden; }
+.overflow-auto   { overflow: auto; }
+.overflow-x-auto { overflow-x: auto; }
+
+// ============================================================
+// TEXT UTILITIES
+// ============================================================
+.text-left   { text-align: left; }
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+.text-xs   { font-size: var(--font-size-xs); }
+.text-sm   { font-size: var(--font-size-sm); }
+.text-md   { font-size: var(--font-size-md); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg   { font-size: var(--font-size-lg); }
+.text-xl   { font-size: var(--font-size-xl); }
+.text-2xl  { font-size: var(--font-size-2xl); }
+
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-bold   { font-weight: 600; }
+
+.text-primary   { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary  { color: var(--text-tertiary); }
+.text-brand     { color: var(--text-brand); }
+.text-success   { color: var(--color-success); }
+.text-warning   { color: var(--color-warning); }
+.text-danger    { color: var(--color-danger); }
+
+// ============================================================
+// BACKGROUND UTILITIES
+// ============================================================
+
+.bg-page {
+  background: var(--surface-page);
+}
+
+.bg-card {
+  background: var(--surface-card);
+}
+
+.bg-muted {
+  background: var(--surface-muted);
+}
+
+.bg-brand {
+  background: var(--color-brand-600);
+}
+
+.bg-success {
+  background: var(--color-success);
+}
+
+.bg-warning {
+  background: var(--color-warning);
+}
+
+.bg-danger {
+  background: var(--color-danger);
+}
+
+// ============================================================
+// BORDER / RADIUS UTILITIES
+// ============================================================
+
+.border {
+  border: 1px solid var(--border-default);
+}
+
+.border-subtle {
+  border: 1px solid var(--border-subtle);
+}
+
+.border-strong {
+  border: 1px solid var(--border-strong);
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}
+
+.rounded-full {
+  border-radius: var(--radius-full);
+}
+
+// ============================================================
+// SHADOW UTILITIES
+// ============================================================
+
+.shadow-xs {
+  box-shadow: var(--shadow-xs);
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

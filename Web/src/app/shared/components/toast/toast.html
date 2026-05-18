@@ -1,0 +1,40 @@
+<div [ngClass]="getContainerClasses()">
+  @for (message of messages$ | async; track message.id) {
+    <div
+      [ngClass]="getToastClasses(message)"
+      role="alert"
+      aria-live="polite"
+    >
+      <div class="toast-icon-wrapper">
+        <span class="material-symbols-rounded toast-icon" aria-hidden="true">
+          {{ getIcon(message) }}
+        </span>
+      </div>
+
+      <div class="toast-content">
+        <div class="toast-summary">
+          {{ message.summary }}
+        </div>
+
+        @if (message.detail) {
+          <div class="toast-detail">
+            {{ message.detail }}
+          </div>
+        }
+      </div>
+
+      @if (message.closable !== false) {
+        <button
+          type="button"
+          class="toast-close"
+          aria-label="Fechar notificação"
+          (click)="remove(message.id)"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">
+            close
+          </span>
+        </button>
+      }
+    </div>
+  }
+</div>

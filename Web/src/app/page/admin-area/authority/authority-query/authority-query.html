@@ -1,0 +1,248 @@
+<section class="authorities-page">
+  <header class="authorities-header">
+    <div class="authorities-title-block">
+      <span class="authorities-eyebrow">Admin Area</span>
+      <h1>{{ t.title }}</h1>
+      <p>{{ t.subtitle }}</p>
+    </div>
+
+    <app-button
+      [label]="t.addButton"
+      icon="admin_panel_settings"
+      severity="primary"
+      (pressed)="addAuthority()"
+    />
+  </header>
+
+  <div class="authorities-stats">
+    <app-card class="authorities-stat-card" [compact]="true">
+      <span class="authorities-stat-icon authorities-stat-icon-brand" aria-hidden="true">
+        <span class="material-symbols-rounded">
+          admin_panel_settings
+        </span>
+      </span>
+
+      <span class="authorities-stat-label">{{ t.stats.total }}</span>
+      <strong class="authorities-stat-value">{{ totalAuthorities }}</strong>
+    </app-card>
+  </div>
+
+  <app-card class="authorities-table-card" padding="lg" [outlined]="true">
+    <form class="authorities-toolbar" [formGroup]="form">
+      <app-input
+        formControlName="search"
+        [label]="t.filters.searchLabel"
+        [placeholder]="t.filters.searchPlaceholder"
+        icon="search"
+      />
+    </form>
+
+    <app-table
+      [columns]="columns"
+      [data]="filteredAuthorities"
+      [actions]="actions"
+      actionsMode="menu"
+      [loading]="authoritiesLoading"
+      [page]="page"
+      [pageSize]="pageSize"
+      [totalRecords]="totalRecords"
+      [actionsHeader]="t.table.actions"
+      [loadingLabel]="t.table.loading"
+      [emptyTitle]="t.table.emptyTitle"
+      [emptyDescription]="t.table.emptyDescription"
+      [paginator]="true"
+      [pageSizeOptions]="[5, 10, 20]"
+      [pageSizeLabel]="t.table.rowsPerPage"
+      [paginatorInfoTemplate]="t.table.paginatorInfo"
+      [firstPageLabel]="t.table.firstPage"
+      [previousPageLabel]="t.table.previousPage"
+      [nextPageLabel]="t.table.nextPage"
+      [lastPageLabel]="t.table.lastPage"
+      (actionSelected)="handleTableAction($event)"
+      (pageChange)="handlePageChange($event)"
+    />
+  </app-card>
+
+  <app-dialog
+    [open]="authorityDialogOpen"
+    [title]="t.dialog.addTitle"
+    [subtitle]="t.dialog.addSubtitle"
+    [closeAriaLabel]="t.dialog.close"
+    icon="admin_panel_settings"
+    size="md"
+    (closed)="closeAuthorityDialog()"
+  >
+    <form
+      class="authority-dialog-form"
+      [formGroup]="authorityForm"
+      (ngSubmit)="submitAuthority()"
+    >
+      <app-input
+        formControlName="code"
+        [label]="t.form.codeLabel"
+        [placeholder]="t.form.codePlaceholder"
+        icon="tag"
+      />
+
+      <app-input
+        formControlName="name"
+        [label]="t.form.nameLabel"
+        [placeholder]="t.form.namePlaceholder"
+        icon="label"
+      />
+
+      <app-drop-down
+        formControlName="scope"
+        [label]="t.form.scopeLabel"
+        [placeholder]="t.form.scopePlaceholder"
+        [options]="scopeOptions"
+        icon="account_tree"
+        [showDescription]="false"
+      />
+
+      <app-input
+        formControlName="description"
+        [label]="t.form.descriptionLabel"
+        [placeholder]="t.form.descriptionPlaceholder"
+        icon="notes"
+      />
+
+      <div class="authority-dialog-actions">
+        <app-button
+          type="button"
+          [label]="t.dialog.cancel"
+          severity="secondary"
+          [outlined]="true"
+          (pressed)="closeAuthorityDialog()"
+        />
+
+        <app-button
+          type="submit"
+          [label]="t.dialog.save"
+          severity="primary"
+          icon="save"
+          iconPos="right"
+          [loading]="createAuthorityLoading"
+        />
+      </div>
+    </form>
+  </app-dialog>
+
+  <app-dialog
+    [open]="viewAuthorityDialogOpen"
+    [title]="t.dialog.viewTitle"
+    [subtitle]="t.dialog.viewSubtitle"
+    [closeAriaLabel]="t.dialog.close"
+    icon="visibility"
+    size="md"
+    (closed)="closeViewAuthorityDialog()"
+  >
+    <form
+      class="authority-dialog-form"
+      [formGroup]="viewAuthorityForm"
+      (ngSubmit)="submitUpdateAuthority()"
+    >
+      @if (viewAuthorityLoading) {
+        <div class="authority-dialog-loading">
+          <span class="material-symbols-rounded" aria-hidden="true">progress_activity</span>
+          <span>{{ t.dialog.loadingView }}</span>
+        </div>
+      }
+
+      <app-input
+        formControlName="name"
+        [label]="t.form.nameLabel"
+        [placeholder]="t.form.namePlaceholder"
+        icon="label"
+      />
+
+      <app-drop-down
+        formControlName="scope"
+        [label]="t.form.scopeLabel"
+        [placeholder]="t.form.scopePlaceholder"
+        [options]="scopeOptions"
+        icon="account_tree"
+        [showDescription]="false"
+      />
+
+      <app-input
+        formControlName="description"
+        [label]="t.form.descriptionLabel"
+        [placeholder]="t.form.descriptionPlaceholder"
+        icon="notes"
+      />
+
+      <section class="authority-access">
+        <div class="authority-access-heading">
+          <h3>{{ t.access.title }}</h3>
+          <span>{{ t.access.description }}</span>
+        </div>
+
+        @if (authorityAccessLoading) {
+          <div class="authority-dialog-loading">
+            <span class="material-symbols-rounded" aria-hidden="true">progress_activity</span>
+            <span>{{ t.access.loading }}</span>
+          </div>
+        }
+
+        @if (authorityAccess?.scope === 'SYSTEM') {
+          <div class="access-usage-list">
+            @for (user of authorityAccess?.users ?? []; track user.userId) {
+              <article class="access-usage">
+                <strong>{{ user.name }}</strong>
+                <span>{{ user.email || user.userId }}</span>
+              </article>
+            } @empty {
+              <span class="access-empty">{{ t.access.emptyUsers }}</span>
+            }
+          </div>
+        } @else {
+          <div class="access-usage-list">
+            @for (usage of authorityAccess?.userCredentials ?? []; track usage.userCredentialId) {
+              <article class="access-usage">
+                <strong>{{ usage.userName || usage.userId || '-' }}</strong>
+                <span>{{ usage.credentialName || usage.credentialId || '-' }}</span>
+              </article>
+            } @empty {
+              <span class="access-empty">{{ t.access.emptyCredentials }}</span>
+            }
+          </div>
+        }
+      </section>
+
+      <div class="authority-dialog-actions">
+        <app-button
+          type="button"
+          [label]="t.dialog.closeButton"
+          severity="secondary"
+          [outlined]="true"
+          (pressed)="closeViewAuthorityDialog()"
+        />
+
+        <app-button
+          type="submit"
+          [label]="t.dialog.update"
+          severity="primary"
+          icon="save"
+          iconPos="right"
+          [loading]="updateAuthorityLoading"
+          [disabled]="viewAuthorityLoading"
+        />
+      </div>
+    </form>
+  </app-dialog>
+
+  <app-confirm-dialog
+    [open]="authorityDeleteDialogOpen"
+    [title]="t.dialog.deleteTitle"
+    [message]="t.toast.deleteConfirm"
+    icon="delete"
+    [closeAriaLabel]="t.dialog.close"
+    [cancelLabel]="t.dialog.deleteCancel"
+    [confirmLabel]="t.dialog.deleteConfirm"
+    confirmIcon="delete"
+    [loading]="authorityDeleteLoading"
+    (cancelled)="closeDeleteAuthorityDialog()"
+    (confirmed)="confirmDeleteAuthority()"
+  />
+</section>

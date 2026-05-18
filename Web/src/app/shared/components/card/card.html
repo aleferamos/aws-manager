@@ -1,0 +1,33 @@
+<div [ngClass]="classes">
+  @if (accent) {
+    <div class="card-accent-bar"></div>
+  }
+
+  @if (hasHeader) {
+    <div class="card-header">
+      @if (icon) {
+        <div class="card-icon" aria-hidden="true">
+          <span class="material-symbols-rounded card-ico">
+            {{ icon }}
+          </span>
+        </div>
+      }
+
+      <div class="card-heading">
+        @if (title) {
+          <div class="card-title">
+            {{ title }}
+          </div>
+        }
+
+        @if (subtitle) {
+          <div class="card-subtitle">
+            {{ subtitle }}
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <ng-content></ng-content>
+</div>

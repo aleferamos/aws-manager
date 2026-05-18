@@ -1,0 +1,19 @@
+<router-outlet />
+
+@if (contextMenu) {
+  <div
+    class="app-context-menu"
+    role="menu"
+    [style.left.px]="contextMenu.x"
+    [style.top.px]="contextMenu.y"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" role="menuitem" (click)="openSettings()">
+      <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+      <span>Settings</span>
+    </button>
+  </div>
+}
+
+<app-toast position="top-right" />
+<app-global-loading />

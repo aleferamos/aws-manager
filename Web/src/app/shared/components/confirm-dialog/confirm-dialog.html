@@ -1,0 +1,31 @@
+<app-dialog
+  [open]="open"
+  [title]="title"
+  [subtitle]="message"
+  [icon]="icon"
+  size="sm"
+  [closeOnBackdrop]="!loading"
+  [closeAriaLabel]="closeAriaLabel"
+  (closed)="cancel()"
+>
+  <div class="confirm-dialog-actions">
+    <app-button
+      type="button"
+      [label]="cancelLabel"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="loading"
+      (pressed)="cancel()"
+    />
+
+    <app-button
+      type="button"
+      [label]="confirmLabel"
+      [icon]="confirmIcon"
+      iconPos="right"
+      severity="danger"
+      [loading]="loading"
+      (pressed)="confirm()"
+    />
+  </div>
+</app-dialog>

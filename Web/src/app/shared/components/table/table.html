@@ -1,0 +1,226 @@
+<div class="table-shell">
+  <div class="table-scroll">
+    <table class="table">
+      <thead class="table-head">
+        <tr>
+          @for (column of columns; track trackColumn($index, column)) {
+            <th
+              scope="col"
+              [class]="getHeaderClasses(column)"
+              [style.width]="column.width ?? null"
+            >
+              {{ column.header }}
+            </th>
+          }
+
+          @if (hasActions) {
+            <th scope="col" class="table-header-cell table-actions-header">
+              {{ actionsHeader }}
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody class="table-body">
+        @if (loading) {
+          <tr>
+            <td class="table-state-cell" [attr.colspan]="columns.length + (hasActions ? 1 : 0)">
+              <div class="table-state">
+                <span class="table-loader" aria-hidden="true"></span>
+                <span>{{ loadingLabel }}</span>
+              </div>
+            </td>
+          </tr>
+        } @else if (isEmpty) {
+          <tr>
+            <td class="table-state-cell" [attr.colspan]="columns.length + (hasActions ? 1 : 0)">
+              <div class="table-empty">
+                <span class="material-symbols-rounded table-empty-icon" aria-hidden="true">
+                  inbox
+                </span>
+                <strong>{{ emptyTitle }}</strong>
+                <span>{{ emptyDescription }}</span>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (row of visibleData; track trackRow($index, row)) {
+            <tr class="table-row" (click)="selectRow(row)">
+              @for (column of columns; track trackColumn($index, column)) {
+                <td
+                  [class]="getCellClasses(column)"
+                  [style.width]="column.width ?? null"
+                >
+                  @if (column.type === 'badge') {
+                    <app-badge
+                      [label]="getCellValue(row, column)"
+                      [severity]="getBadgeSeverity(row, column)"
+                      size="sm"
+                    />
+                  } @else if (column.type === 'link') {
+                    @if (getCellLink(row, column); as cellLink) {
+                      <a
+                        class="table-cell-link"
+                        [routerLink]="cellLink"
+                        (click)="$event.stopPropagation()"
+                      >
+                        {{ getCellValue(row, column) }}
+                      </a>
+                    } @else {
+                      <button
+                        type="button"
+                        class="table-cell-link table-cell-link-button"
+                        (click)="selectCell($event, row, column)"
+                      >
+                        {{ getCellValue(row, column) }}
+                      </button>
+                    }
+                  } @else {
+                    <span class="table-cell-text">
+                      {{ getCellValue(row, column) }}
+                    </span>
+                  }
+                </td>
+              }
+
+              @if (hasActions) {
+                <td class="table-cell table-actions-cell">
+                  <div class="table-actions">
+                    @if (actionsMode === 'menu') {
+                      <div class="table-action-menu">
+                        <button
+                          type="button"
+                          class="table-action-menu-trigger"
+                          [attr.aria-label]="actionsHeader"
+                          [attr.aria-expanded]="isActionMenuOpen(row)"
+                          aria-haspopup="menu"
+                          (click)="toggleActionMenu($event, row)"
+                        >
+                          <span class="material-symbols-rounded" aria-hidden="true">
+                            more_vert
+                          </span>
+                        </button>
+
+                        @if (isActionMenuOpen(row)) {
+                          <div
+                            class="table-action-menu-panel"
+                            role="menu"
+                            [style.top.px]="actionMenuPosition?.top"
+                            [style.left.px]="actionMenuPosition?.left"
+                            (click)="$event.stopPropagation()"
+                          >
+                            @for (action of actions; track trackAction($index, action)) {
+                              <button
+                                type="button"
+                                class="table-action-menu-item"
+                                role="menuitem"
+                                [class.table-action-menu-item-danger]="action.severity === 'danger'"
+                                [disabled]="isActionDisabled(row, action)"
+                                (click)="selectAction($event, row, action)"
+                              >
+                                <span class="material-symbols-rounded" aria-hidden="true">
+                                  {{ action.icon }}
+                                </span>
+                                <span>{{ action.label }}</span>
+                              </button>
+                            }
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      @for (action of actions; track trackAction($index, action)) {
+                        <app-button
+                          [icon]="action.icon"
+                          [ariaLabel]="action.label"
+                          [severity]="action.severity ?? 'secondary'"
+                          size="sm"
+                          [text]="true"
+                          [disabled]="isActionDisabled(row, action)"
+                          (pressed)="selectAction($event, row, action)"
+                        />
+                      }
+                    }
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (hasPaginator) {
+    <div class="table-paginator">
+      <div class="table-paginator-info">
+        {{ paginatorInfo }}
+      </div>
+
+      <div class="table-paginator-controls">
+        <div class="table-page-size" [attr.aria-label]="pageSizeLabel">
+          <span>{{ pageSizeLabel }}</span>
+
+          <div class="table-page-size-options">
+            @for (option of pageSizeOptions; track option) {
+              <button
+                type="button"
+                class="table-page-size-option"
+                [class.table-page-size-option-active]="option === safePageSize"
+                [attr.aria-pressed]="option === safePageSize"
+                (click)="setPageSize(option)"
+              >
+                {{ option }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="table-page-actions">
+          <app-button
+            icon="keyboard_double_arrow_left"
+            [ariaLabel]="firstPageLabel"
+            severity="secondary"
+            size="sm"
+            [text]="true"
+            [disabled]="!canGoPrevious"
+            (pressed)="goToPage(1)"
+          />
+
+          <app-button
+            icon="chevron_left"
+            [ariaLabel]="previousPageLabel"
+            severity="secondary"
+            size="sm"
+            [text]="true"
+            [disabled]="!canGoPrevious"
+            (pressed)="goToPage(currentPage - 1)"
+          />
+
+          <span class="table-page-current">
+            {{ currentPage }} / {{ pageCount }}
+          </span>
+
+          <app-button
+            icon="chevron_right"
+            [ariaLabel]="nextPageLabel"
+            severity="secondary"
+            size="sm"
+            [text]="true"
+            [disabled]="!canGoNext"
+            (pressed)="goToPage(currentPage + 1)"
+          />
+
+          <app-button
+            icon="keyboard_double_arrow_right"
+            [ariaLabel]="lastPageLabel"
+            severity="secondary"
+            size="sm"
+            [text]="true"
+            [disabled]="!canGoNext"
+            (pressed)="goToPage(pageCount)"
+          />
+        </div>
+      </div>
+    </div>
+  }
+</div>

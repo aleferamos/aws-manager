@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: aws-manager-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: aws_manager
+      POSTGRES_USER: aws_manager
+      POSTGRES_PASSWORD: aws_manager_dev
+
+    ports:
+      - "4502:5432"
+
+    volumes:
+      - aws_manager_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./Api
+    container_name: aws-manager-api
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: aws_manager
+      DB_PASSWORD: aws_manager_dev
+      DB_DATABASE: aws_manager
+      CORS_ORIGIN: http://localhost:4501
+      FRONTEND_SITE_URL: http://localhost:4501
+      FRONTEND_PASSWORD_DEFINITION_URL: http://localhost:4501/set-password
+      CREDENTIAL_ENCRYPTION_KEY: aws-manager-dev-key
+      EMAIL_HOST: smtp-relay.brevo.com
+      EMAIL_PORT: 587
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_APP_PASSWORD: ${EMAIL_APP_PASSWORD:-}
+      EMAIL_FROM_EMAIL: ${EMAIL_FROM_EMAIL:-}
+      EMAIL_FROM_NAME: AWS Manager
+    ports:
+      - "4500:3000"
+    depends_on:
+      - postgres
+
+  web:
+    build:
+      context: ./Web
+      args:
+        API_URL: http://localhost:4500
+    container_name: aws-manager-web
+    restart: unless-stopped
+    ports:
+      - "4501:80"
+    depends_on:
+      - api
+
+volumes:
+  aws_manager_data:
+    name: aws_manager_data

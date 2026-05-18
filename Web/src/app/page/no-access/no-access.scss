@@ -1,0 +1,36 @@
+.no-access-page {
+  min-height: min(520px, calc(100dvh - 160px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.no-access-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+
+  span {
+    font-size: 24px;
+  }
+}
+
+h1 {
+  color: var(--text-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+p {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-base);
+}

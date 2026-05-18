@@ -1,0 +1,166 @@
+<section class="app-resources-page">
+  <header class="app-resources-header">
+    <div class="app-resources-title-block">
+      <span class="app-resources-eyebrow">Admin Area</span>
+      <h1>{{ t.title }}</h1>
+      <p>{{ t.subtitle }}</p>
+    </div>
+
+    <app-button
+      [label]="t.addButton"
+      icon="add_circle"
+      severity="primary"
+      (pressed)="openCreateDialog()"
+    />
+  </header>
+
+  <app-card class="app-resources-table-card" padding="lg" [outlined]="true">
+    <form class="app-resources-toolbar" [formGroup]="filterForm">
+      <app-input
+        formControlName="search"
+        [label]="t.filters.searchLabel"
+        [placeholder]="t.filters.searchPlaceholder"
+        icon="search"
+      />
+    </form>
+
+    <app-table
+      [columns]="columns"
+      [data]="tableRows"
+      [actions]="actions"
+      [loading]="resourcesLoading"
+      [page]="page"
+      [pageSize]="pageSize"
+      [totalRecords]="totalRecords"
+      [actionsHeader]="t.table.actions"
+      [loadingLabel]="t.table.loading"
+      [emptyTitle]="t.table.emptyTitle"
+      [emptyDescription]="t.table.emptyDescription"
+      [paginator]="true"
+      [pageSizeOptions]="[5, 10, 20]"
+      [pageSizeLabel]="t.table.rowsPerPage"
+      [paginatorInfoTemplate]="t.table.paginatorInfo"
+      [firstPageLabel]="t.table.firstPage"
+      [previousPageLabel]="t.table.previousPage"
+      [nextPageLabel]="t.table.nextPage"
+      [lastPageLabel]="t.table.lastPage"
+      (actionSelected)="handleTableAction($event)"
+      (pageChange)="handlePageChange($event)"
+    />
+  </app-card>
+
+  <app-dialog
+    [open]="dialogOpen"
+    [title]="editMode ? t.dialog.editTitle : t.dialog.addTitle"
+    [subtitle]="editMode ? t.dialog.editSubtitle : t.dialog.addSubtitle"
+    [closeAriaLabel]="t.dialog.close"
+    icon="account_tree"
+    size="md"
+    (closed)="closeDialog()"
+  >
+    <form
+      class="app-resource-dialog-form"
+      [formGroup]="resourceForm"
+      (ngSubmit)="submitResource()"
+    >
+      @if (viewLoading) {
+        <div class="app-resource-dialog-loading">
+          <span class="material-symbols-rounded" aria-hidden="true">progress_activity</span>
+          <span>{{ t.dialog.loadingView }}</span>
+        </div>
+      }
+
+      <div class="app-resource-dialog-grid">
+        <app-input
+          formControlName="code"
+          [label]="t.form.codeLabel"
+          [placeholder]="t.form.codePlaceholder"
+          icon="tag"
+        />
+
+        <app-input
+          formControlName="label"
+          [label]="t.form.labelLabel"
+          [placeholder]="t.form.labelPlaceholder"
+          icon="label"
+        />
+
+        <app-drop-down
+          formControlName="type"
+          [label]="t.form.typeLabel"
+          [placeholder]="t.form.typePlaceholder"
+          [options]="typeOptions"
+          icon="category"
+          [showDescription]="false"
+        />
+
+        <app-drop-down
+          formControlName="active"
+          [label]="t.form.activeLabel"
+          [placeholder]="t.form.activePlaceholder"
+          [options]="statusOptions"
+          icon="verified"
+          [showDescription]="false"
+        />
+
+        <app-input
+          formControlName="path"
+          [label]="t.form.pathLabel"
+          [placeholder]="t.form.pathPlaceholder"
+          icon="route"
+        />
+
+        <app-input
+          formControlName="icon"
+          [label]="t.form.iconLabel"
+          [placeholder]="t.form.iconPlaceholder"
+          icon="widgets"
+        />
+
+        <app-input
+          formControlName="order"
+          [label]="t.form.orderLabel"
+          [placeholder]="t.form.orderPlaceholder"
+          type="number"
+          icon="sort"
+        />
+
+        <app-drop-down
+          formControlName="parentId"
+          [label]="t.form.parentLabel"
+          [placeholder]="t.form.parentPlaceholder"
+          [options]="parentOptions"
+          icon="account_tree"
+        />
+
+        <app-drop-down
+          formControlName="requiredAuthorityId"
+          [label]="t.form.authorityLabel"
+          [placeholder]="t.form.authorityPlaceholder"
+          [options]="authorityOptions"
+          icon="admin_panel_settings"
+        />
+      </div>
+
+      <div class="app-resource-dialog-actions">
+        <app-button
+          type="button"
+          [label]="editMode ? t.dialog.closeButton : t.dialog.cancel"
+          severity="secondary"
+          [outlined]="true"
+          (pressed)="closeDialog()"
+        />
+
+        <app-button
+          type="submit"
+          [label]="editMode ? t.dialog.update : t.dialog.save"
+          severity="primary"
+          icon="save"
+          iconPos="right"
+          [loading]="saveLoading"
+          [disabled]="viewLoading"
+        />
+      </div>
+    </form>
+  </app-dialog>
+</section>

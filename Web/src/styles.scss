@@ -1,0 +1,179 @@
+@use './styles/index' as *;
+
+.s3-folder-nav {
+  min-height: 42px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
+.s3-folder-back {
+  min-height: 30px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.s3-folder-back:hover:not(:disabled) {
+  border-color: var(--color-brand-600);
+  background: var(--color-brand-50);
+  color: var(--color-brand-700);
+}
+
+.s3-folder-back:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.s3-folder-current {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.s3-folder-current strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s3-folder-back .material-symbols-rounded,
+.s3-folder-current .material-symbols-rounded {
+  font-size: 18px;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+}
+
+.s3-folder-current .material-symbols-rounded {
+  color: var(--color-brand-600);
+  font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+}
+
+.s3-object-context-menu {
+  position: fixed;
+  z-index: 1400;
+  min-width: 150px;
+  padding: 6px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.s3-object-context-menu button {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.s3-object-context-menu button:hover {
+  background: var(--surface-muted);
+}
+
+.s3-object-context-menu .material-symbols-rounded {
+  color: var(--text-tertiary);
+  font-size: 18px;
+}
+
+.sidebar-update-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-update-dialog p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.sidebar-update-versions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sidebar-update-versions div {
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+
+.sidebar-update-versions span,
+.sidebar-update-versions strong {
+  display: block;
+}
+
+.sidebar-update-versions span {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.sidebar-update-versions strong {
+  margin-top: 6px;
+}
+
+.sidebar-update-command-label {
+  font-weight: 600;
+}
+
+.sidebar-update-command {
+  margin: 0;
+  padding: 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+
+.sidebar-update-command code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  white-space: pre;
+}
+
+.sidebar-update-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  .s3-folder-nav {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sidebar-update-versions {
+    grid-template-columns: 1fr;
+  }
+}

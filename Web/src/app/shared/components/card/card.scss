@@ -1,0 +1,239 @@
+// ============================================================
+// AWS Manager Design System — Card Component
+// ============================================================
+
+.card {
+  position: relative;
+  overflow: visible;
+
+  border-radius: var(--radius-xl);
+  background: var(--surface-card);
+  color: var(--text-primary);
+
+  transition:
+    background var(--transition-normal),
+    border-color var(--transition-normal),
+    box-shadow var(--transition-normal),
+    transform var(--transition-fast);
+}
+
+// ============================================================
+// Padding
+// ============================================================
+
+.card-padding-none {
+  padding: 0;
+}
+
+.card-padding-sm {
+  padding: 12px 14px;
+}
+
+.card-padding-md {
+  padding: 16px 18px;
+}
+
+.card-padding-lg {
+  padding: 20px 22px;
+}
+
+.card-compact {
+  padding: 16px 18px;
+}
+
+// ============================================================
+// Structure
+// ============================================================
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-title {
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  line-height: var(--line-height-heading);
+}
+
+.card-subtitle {
+  margin-top: 4px;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  background: var(--card-icon-bg, var(--color-neutral-100));
+  color: var(--card-icon-color, var(--text-secondary));
+}
+
+.card-ico {
+  font-size: 20px;
+  line-height: 1;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+}
+
+// Quando tem conteúdo depois do header
+.card-header + * {
+  margin-top: 14px;
+}
+
+// ============================================================
+// Visual modifiers
+// ============================================================
+
+.card-outlined {
+  border: 1px solid var(--border-default);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-sm);
+}
+
+.card-hoverable {
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ============================================================
+// Accent bar
+// ============================================================
+
+.card-accent {
+  padding-top: calc(16px + 4px);
+}
+
+.card-accent-bar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--card-accent-color, var(--color-brand-600));
+}
+
+// ============================================================
+// Severity
+// ============================================================
+
+.card-default {
+  --card-accent-color: var(--border-default);
+  --card-icon-bg: var(--color-neutral-100);
+  --card-icon-color: var(--color-neutral-600);
+}
+
+.card-brand {
+  --card-accent-color: var(--color-brand-600);
+  --card-icon-bg: var(--color-brand-100);
+  --card-icon-color: var(--color-brand-700);
+}
+
+.card-success {
+  --card-accent-color: var(--color-success);
+  --card-icon-bg: var(--color-success-light);
+  --card-icon-color: var(--color-success-strong);
+}
+
+.card-info {
+  --card-accent-color: var(--color-info);
+  --card-icon-bg: var(--color-info-light);
+  --card-icon-color: var(--color-info-strong);
+}
+
+.card-warning {
+  --card-accent-color: var(--color-warning);
+  --card-icon-bg: var(--color-warning-light);
+  --card-icon-color: var(--color-warning-strong);
+}
+
+.card-danger {
+  --card-accent-color: var(--color-danger);
+  --card-icon-bg: var(--color-danger-light);
+  --card-icon-color: var(--color-danger-strong);
+}
+
+.card-contrast {
+  --card-accent-color: var(--color-neutral-950);
+  --card-icon-bg: var(--color-neutral-950);
+  --card-icon-color: var(--color-neutral-0);
+}
+
+// ============================================================
+// Dark mode
+// ============================================================
+
+.theme-dark {
+  .card {
+    background: var(--surface-card);
+  }
+
+  .card-outlined {
+    border-color: var(--border-default);
+  }
+
+  .card-hoverable:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-default {
+    --card-accent-color: var(--color-neutral-700);
+    --card-icon-bg: var(--color-neutral-800);
+    --card-icon-color: var(--color-neutral-300);
+  }
+
+  .card-brand {
+    --card-icon-bg: var(--color-brand-950);
+    --card-icon-color: var(--color-brand-400);
+  }
+
+  .card-success {
+    --card-icon-bg: var(--color-success-dark);
+    --card-icon-color: #4ade80;
+  }
+
+  .card-info {
+    --card-icon-bg: var(--color-info-dark);
+    --card-icon-color: #93c5fd;
+  }
+
+  .card-warning {
+    --card-icon-bg: var(--color-warning-dark);
+    --card-icon-color: #fbbf24;
+  }
+
+  .card-danger {
+    --card-icon-bg: var(--color-danger-dark);
+    --card-icon-color: #f87171;
+  }
+
+  .card-contrast {
+    --card-icon-bg: var(--color-neutral-50);
+    --card-icon-color: var(--color-neutral-950);
+  }
+}

@@ -1,0 +1,257 @@
+// ============================================================
+// AWS Manager Design System — Badge Component
+// ============================================================
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+
+  font-family: var(--font-sans);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+
+  user-select: none;
+  vertical-align: middle;
+
+  transition:
+    background var(--transition-normal),
+    border-color var(--transition-normal),
+    color var(--transition-normal);
+}
+
+// ============================================================
+// Sizes
+// ============================================================
+
+.badge-sm {
+  min-height: 20px;
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+
+  .badge-ico {
+    font-size: 14px;
+  }
+}
+
+.badge-md {
+  min-height: 22px;
+  padding: 3px 10px;
+  font-size: var(--font-size-sm);
+
+  .badge-ico {
+    font-size: 15px;
+  }
+}
+
+.badge-lg {
+  min-height: 26px;
+  padding: 4px 12px;
+  font-size: var(--font-size-base);
+
+  .badge-ico {
+    font-size: 17px;
+  }
+}
+
+// ============================================================
+// Modifiers
+// ============================================================
+
+.badge-rounded {
+  border-radius: var(--radius-full);
+}
+
+.badge-icon-only {
+  padding-inline: 0;
+
+  &.badge-sm {
+    width: 20px;
+  }
+
+  &.badge-md {
+    width: 22px;
+  }
+
+  &.badge-lg {
+    width: 26px;
+  }
+}
+
+// ============================================================
+// Filled / soft variants
+// ============================================================
+
+.badge-brand,
+.badge-primary {
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+}
+
+.badge-secondary {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+}
+
+.badge-success {
+  background: var(--color-success-light);
+  color: var(--color-success-strong);
+}
+
+.badge-info {
+  background: var(--color-info-light);
+  color: var(--color-info-strong);
+}
+
+.badge-warning {
+  background: var(--color-warning-light);
+  color: var(--color-warning-strong);
+}
+
+.badge-danger {
+  background: var(--color-danger-light);
+  color: var(--color-danger-strong);
+}
+
+.badge-contrast {
+  background: var(--color-neutral-950);
+  color: var(--color-neutral-0);
+}
+
+// ============================================================
+// Outlined variant
+// ============================================================
+
+.badge-outlined {
+  background: transparent;
+  border-color: currentColor;
+}
+
+.badge-brand.badge-outlined,
+.badge-primary.badge-outlined {
+  color: var(--color-brand-600);
+}
+
+.badge-secondary.badge-outlined {
+  color: var(--color-neutral-600);
+}
+
+.badge-success.badge-outlined {
+  color: var(--color-success-strong);
+}
+
+.badge-info.badge-outlined {
+  color: var(--color-info-strong);
+}
+
+.badge-warning.badge-outlined {
+  color: var(--color-warning-strong);
+}
+
+.badge-danger.badge-outlined {
+  color: var(--color-danger-strong);
+}
+
+.badge-contrast.badge-outlined {
+  color: var(--color-neutral-950);
+}
+
+// ============================================================
+// Dark mode
+// ============================================================
+
+.theme-dark {
+  .badge-brand,
+  .badge-primary {
+    background: var(--color-brand-950);
+    color: var(--color-brand-400);
+  }
+
+  .badge-secondary {
+    background: var(--color-neutral-800);
+    color: var(--color-neutral-300);
+  }
+
+  .badge-success {
+    background: var(--color-success-dark);
+    color: #4ade80;
+  }
+
+  .badge-info {
+    background: var(--color-info-dark);
+    color: #93c5fd;
+  }
+
+  .badge-warning {
+    background: var(--color-warning-dark);
+    color: #fbbf24;
+  }
+
+  .badge-danger {
+    background: var(--color-danger-dark);
+    color: #f87171;
+  }
+
+  .badge-contrast {
+    background: var(--color-neutral-50);
+    color: var(--color-neutral-950);
+  }
+
+  .badge-brand.badge-outlined,
+  .badge-primary.badge-outlined {
+    background: transparent;
+    color: var(--color-brand-400);
+  }
+
+  .badge-secondary.badge-outlined {
+    background: transparent;
+    color: var(--color-neutral-400);
+  }
+
+  .badge-success.badge-outlined {
+    background: transparent;
+    color: #4ade80;
+  }
+
+  .badge-info.badge-outlined {
+    background: transparent;
+    color: #93c5fd;
+  }
+
+  .badge-warning.badge-outlined {
+    background: transparent;
+    color: #fbbf24;
+  }
+
+  .badge-danger.badge-outlined {
+    background: transparent;
+    color: #f87171;
+  }
+
+  .badge-contrast.badge-outlined {
+    background: transparent;
+    color: var(--color-neutral-50);
+  }
+}
+
+// ============================================================
+// Icon
+// ============================================================
+
+.badge-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  line-height: 1;
+  user-select: none;
+}
+
+.badge-label {
+  line-height: 1;
+}

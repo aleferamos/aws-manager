@@ -1,0 +1,20 @@
+<span
+  [class]="classes"
+  [attr.aria-label]="ariaLabel || label || icon"
+>
+  @if (icon && iconPos === 'left') {
+    <span class="material-symbols-rounded badge-ico" aria-hidden="true">
+      {{ icon }}
+    </span>
+  }
+
+  @if (label) {
+    <span class="badge-label">{{ label }}</span>
+  }
+
+  @if (icon && iconPos === 'right') {
+    <span class="material-symbols-rounded badge-ico" aria-hidden="true">
+      {{ icon }}
+    </span>
+  }
+</span>

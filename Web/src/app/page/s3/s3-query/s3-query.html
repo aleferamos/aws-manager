@@ -1,0 +1,528 @@
+<section class="s3-page">
+  <header class="s3-header">
+    <div class="s3-title-block">
+      <span class="s3-eyebrow">{{ t.eyebrow }}</span>
+      <h1>{{ t.title }}</h1>
+      <p>{{ t.subtitle }}</p>
+    </div>
+
+    <div class="s3-header-actions">
+      <app-button
+        [ariaLabel]="t.reload"
+        icon="refresh"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="s3Loading"
+        [disabled]="!selectedCredential"
+        (pressed)="reload()"
+      />
+
+      <app-button
+        [label]="t.create"
+        icon="add"
+        [disabled]="!selectedCredential"
+        (pressed)="openCreateDialog()"
+      />
+    </div>
+  </header>
+
+  @if (!selectedCredential) {
+    <app-card class="s3-empty-card" padding="lg" [outlined]="true">
+      <span class="s3-empty-icon" aria-hidden="true">
+        <span class="material-symbols-rounded">vpn_key_off</span>
+      </span>
+
+      <div class="s3-empty-copy">
+        <h2>{{ t.emptyCredential.title }}</h2>
+        <p>{{ t.emptyCredential.description }}</p>
+      </div>
+    </app-card>
+  } @else {
+    <div class="s3-stats">
+      <app-card class="s3-stat-card" [compact]="true">
+        <span class="s3-stat-icon s3-stat-icon-brand" aria-hidden="true">
+          <span class="material-symbols-rounded">deployed_code</span>
+        </span>
+
+        <span class="s3-stat-label">{{ t.stats.total }}</span>
+        <strong class="s3-stat-value">{{ totalBuckets }}</strong>
+      </app-card>
+
+      <app-card class="s3-stat-card" [compact]="true">
+        <span class="s3-stat-icon s3-stat-icon-info" aria-hidden="true">
+          <span class="material-symbols-rounded">public</span>
+        </span>
+
+        <span class="s3-stat-label">{{ t.stats.selectedRegion }}</span>
+        <strong class="s3-stat-value s3-stat-region">{{ selectedRegion }}</strong>
+      </app-card>
+    </div>
+
+    <app-card class="s3-table-card" padding="lg" [outlined]="true">
+      <div class="s3-context">
+        <span class="material-symbols-rounded" aria-hidden="true">vpn_key</span>
+        <strong>{{ selectedCredential.name }}</strong>
+        <span>{{ selectedRegion }}</span>
+      </div>
+
+      <app-table
+        rowKey="name"
+        actionsMode="menu"
+        [columns]="columns"
+        [data]="tableRows"
+        [actions]="actions"
+        [actionsHeader]="t.table.actions"
+        [loading]="s3Loading"
+        [loadingLabel]="t.table.loading"
+        [emptyTitle]="t.table.emptyTitle"
+        [emptyDescription]="t.table.emptyDescription"
+        (cellSelected)="handleBucketCellSelected($event)"
+        (actionSelected)="handleActionSelected($event)"
+      />
+    </app-card>
+  }
+
+  <app-dialog
+    [open]="createDialogOpen"
+    [title]="t.createDialog.title"
+    [subtitle]="t.createDialog.subtitle"
+    [closeAriaLabel]="t.close"
+    icon="add_box"
+    size="sm"
+    [closeOnBackdrop]="!createLoading"
+    (closed)="closeCreateDialog()"
+  >
+    <form class="s3-create-form" (ngSubmit)="createBucket()">
+      <div class="s3-bucket-type-field">
+        <span class="s3-field-label">{{ t.createDialog.bucketType }}</span>
+
+        <div class="s3-bucket-type-options">
+          <button
+            type="button"
+            class="s3-bucket-type-option"
+            [class.s3-bucket-type-option-active]="bucketType === 'general-purpose'"
+            (click)="setBucketType('general-purpose')"
+          >
+            <span class="s3-radio" aria-hidden="true"></span>
+            <span>
+              <strong>{{ t.createDialog.generalPurpose }}</strong>
+              <small>{{ t.createDialog.generalPurposeDescription }}</small>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="s3-bucket-type-option"
+            [class.s3-bucket-type-option-active]="bucketType === 'directory'"
+            (click)="setBucketType('directory')"
+          >
+            <span class="s3-radio" aria-hidden="true"></span>
+            <span>
+              <strong>{{ t.createDialog.directory }}</strong>
+              <small>{{ t.createDialog.directoryDescription }}</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      @if (bucketType === 'directory') {
+        <app-drop-down
+          name="availabilityZoneId"
+          [ngModel]="availabilityZoneId"
+          (ngModelChange)="setAvailabilityZoneId($event)"
+          [options]="availabilityZoneOptions"
+          [label]="t.createDialog.availabilityZoneId"
+          [placeholder]="t.createDialog.availabilityZonePlaceholder"
+          [helperText]="directoryBucketsSupported ? t.createDialog.availabilityZoneHelper : t.createDialog.unsupportedRegion"
+          icon="location_on"
+          [disabled]="!directoryBucketsSupported"
+        />
+
+        <label class="s3-acknowledgement">
+          <input
+            type="checkbox"
+            name="acknowledgeSingleAvailabilityZone"
+            [(ngModel)]="acknowledgeSingleAvailabilityZone"
+          />
+          <span>{{ t.createDialog.acknowledgement }}</span>
+        </label>
+      }
+
+      <app-input
+        name="bucketName"
+        [(ngModel)]="bucketName"
+        [label]="bucketType === 'directory' ? t.createDialog.baseBucketName : t.createDialog.bucketName"
+        [placeholder]="bucketType === 'directory' ? t.createDialog.directoryBucketPlaceholder : t.createDialog.bucketPlaceholder"
+        [helperText]="bucketType === 'directory' ? t.createDialog.directoryHelper : t.createDialog.helper"
+        icon="deployed_code"
+        autocomplete="off"
+      />
+
+      <div class="s3-dialog-actions">
+        <app-button
+          type="button"
+          [label]="t.createDialog.cancel"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="createLoading"
+          (pressed)="closeCreateDialog()"
+        />
+
+        <app-button
+          type="submit"
+          [label]="t.createDialog.confirm"
+          icon="check"
+          iconPos="right"
+          [loading]="createLoading"
+          [disabled]="!canCreateBucket()"
+        />
+      </div>
+    </form>
+  </app-dialog>
+
+  <app-dialog
+    [open]="objectsDialogOpen"
+    [title]="selectedBucket?.name || t.objects.title"
+    [subtitle]="t.objects.subtitle"
+    [closeAriaLabel]="t.close"
+    icon="folder_open"
+    size="xl"
+    [closeOnBackdrop]="!objectsLoading && !objectActionLoading"
+    (closed)="closeObjectsDialog()"
+  >
+    <div class="s3-objects">
+      <div class="s3-objects-toolbar">
+        <app-input
+          name="objectPrefix"
+          [(ngModel)]="objectPrefix"
+          [label]="t.objects.prefix"
+          [placeholder]="t.objects.prefixPlaceholder"
+          icon="filter_alt"
+          autocomplete="off"
+        />
+
+        <app-button
+          [label]="t.objects.reload"
+          icon="refresh"
+          severity="secondary"
+          [outlined]="true"
+          [loading]="objectsLoading"
+          (pressed)="loadObjects()"
+        />
+
+        <app-button
+          [label]="t.objects.downloadSelected"
+          icon="download"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="selectedObjectKeys.size === 0"
+          [loading]="objectDownloadLoading"
+          (pressed)="downloadSelectedObjects()"
+        />
+
+        <app-button
+          [label]="t.objects.deleteSelected"
+          icon="delete"
+          severity="danger"
+          [disabled]="selectedObjectKeys.size === 0"
+          [loading]="objectActionLoading"
+          (pressed)="deleteSelectedObjects()"
+        />
+      </div>
+
+      <form class="s3-upload-form" (ngSubmit)="uploadObject()">
+        <app-input
+          name="objectKey"
+          [(ngModel)]="objectKey"
+          [label]="t.objects.objectKey"
+          [placeholder]="t.objects.objectKeyPlaceholder"
+          icon="key"
+          autocomplete="off"
+        />
+
+        <app-file-input
+          [label]="t.objects.file"
+          [placeholder]="t.objects.chooseFile"
+          [chooseLabel]="t.objects.browseFile"
+          [helperText]="t.objects.fileHelper"
+          [file]="selectedObjectFile"
+          (fileChange)="handleObjectFileSelected($event)"
+        />
+
+        <app-button
+          type="submit"
+          [label]="t.objects.upload"
+          icon="upload"
+          [loading]="objectActionLoading"
+          [disabled]="!canUploadObject"
+        />
+      </form>
+
+      <div class="s3-objects-selection">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="allObjectsSelected"
+            [disabled]="objects.length === 0"
+            (change)="toggleAllObjects($any($event.target).checked)"
+          />
+          <span>{{ t.objects.selectAll }}</span>
+        </label>
+
+        <span>{{ selectedObjectsLabel }}</span>
+      </div>
+
+      <div class="s3-folder-nav">
+        <button
+          type="button"
+          class="s3-folder-back"
+          [disabled]="!canGoParentFolder"
+          (click)="goToParentFolder()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+          <span>{{ t.objects.parentFolder }}</span>
+        </button>
+
+        <div class="s3-folder-current">
+          <span class="material-symbols-rounded" aria-hidden="true">folder</span>
+          <span>{{ t.objects.currentFolder }}</span>
+          <strong>{{ currentFolderLabel }}</strong>
+        </div>
+      </div>
+
+      <div class="s3-objects-table-shell">
+        <table class="s3-objects-table">
+          <thead>
+            <tr>
+              <th class="s3-objects-select-col"></th>
+              <th>{{ t.objects.key }}</th>
+              <th>{{ t.objects.size }}</th>
+              <th>{{ t.objects.storageClass }}</th>
+              <th>{{ t.objects.lastModified }}</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @if (objectsLoading) {
+              <tr>
+                <td colspan="5">
+                  <div class="s3-objects-state">{{ t.objects.loading }}</div>
+                </td>
+              </tr>
+            } @else if (!objects.length) {
+              <tr>
+                <td colspan="5">
+                  <div class="s3-objects-state">
+                    <strong>{{ t.objects.emptyTitle }}</strong>
+                    <span>{{ t.objects.emptyDescription }}</span>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (object of paginatedObjects; track object.key) {
+                <tr (contextmenu)="openObjectContextMenu($event, object)">
+                  <td class="s3-objects-select-col">
+                    <input
+                      type="checkbox"
+                      [checked]="isObjectSelected(object.key)"
+                      (change)="toggleObjectSelection(object.key, $any($event.target).checked)"
+                    />
+                  </td>
+                  <td>
+                    @if (object.type === 'folder') {
+                      <button
+                        type="button"
+                        class="s3-object-folder"
+                        (click)="openObjectFolder(object)"
+                      >
+                        <span class="material-symbols-rounded" aria-hidden="true">folder</span>
+                        <span>{{ getObjectDisplayName(object) }}</span>
+                      </button>
+                    } @else {
+                      <span class="s3-object-key">
+                        <span class="material-symbols-rounded" aria-hidden="true">draft</span>
+                        <span>{{ getObjectDisplayName(object) }}</span>
+                      </span>
+                    }
+                  </td>
+                  <td>{{ object.type === 'folder' ? '-' : formatObjectSize(object.size) }}</td>
+                  <td>{{ object.storageClass || '-' }}</td>
+                  <td>{{ formatDateTime(object.lastModified) }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (!objectsLoading && objects.length) {
+        <div class="s3-objects-paginator">
+          <span class="s3-objects-paginator-info">{{ objectPaginatorInfo }}</span>
+
+          <div class="s3-objects-page-size" [attr.aria-label]="t.objects.rowsPerPage">
+            <span>{{ t.objects.rowsPerPage }}</span>
+
+            <div class="s3-objects-page-size-options">
+              @for (option of objectsPageSizeOptions; track option) {
+                <button
+                  type="button"
+                  class="s3-objects-page-size-option"
+                  [class.s3-objects-page-size-option-active]="option === objectsPageSize"
+                  [attr.aria-pressed]="option === objectsPageSize"
+                  (click)="setObjectsPageSize(option)"
+                >
+                  {{ option }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="s3-objects-page-actions">
+            <app-button
+              icon="keyboard_double_arrow_left"
+              [ariaLabel]="t.objects.firstPage"
+              severity="secondary"
+              size="sm"
+              [text]="true"
+              [disabled]="!canGoPreviousObjectPage"
+              (pressed)="goToObjectsPage(1)"
+            />
+
+            <app-button
+              icon="chevron_left"
+              [ariaLabel]="t.objects.previousPage"
+              severity="secondary"
+              size="sm"
+              [text]="true"
+              [disabled]="!canGoPreviousObjectPage"
+              (pressed)="goToObjectsPage(currentObjectsPage - 1)"
+            />
+
+            <span class="s3-objects-page-current">
+              {{ currentObjectsPage }} / {{ objectsPageCount }}
+            </span>
+
+            <app-button
+              icon="chevron_right"
+              [ariaLabel]="t.objects.nextPage"
+              severity="secondary"
+              size="sm"
+              [text]="true"
+              [disabled]="!canGoNextObjectPage"
+              (pressed)="goToObjectsPage(currentObjectsPage + 1)"
+            />
+
+            <app-button
+              icon="keyboard_double_arrow_right"
+              [ariaLabel]="t.objects.lastPage"
+              severity="secondary"
+              size="sm"
+              [text]="true"
+              [disabled]="!canGoNextObjectPage"
+              (pressed)="goToObjectsPage(objectsPageCount)"
+            />
+          </div>
+        </div>
+      }
+
+      @if (objectContextMenu) {
+        <div
+          class="s3-object-context-menu"
+          role="menu"
+          [style.left.px]="objectContextMenu.x"
+          [style.top.px]="objectContextMenu.y"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            (click)="downloadObject(objectContextMenu.object)"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">download</span>
+            <span>{{ t.objects.download }}</span>
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            (click)="openRenameDialog(objectContextMenu.object)"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">drive_file_rename_outline</span>
+            <span>{{ t.objects.rename }}</span>
+          </button>
+        </div>
+      }
+    </div>
+  </app-dialog>
+
+  <app-dialog
+    [open]="!!objectPendingRename"
+    [title]="t.renameDialog.title"
+    [subtitle]="t.renameDialog.subtitle"
+    [closeAriaLabel]="t.close"
+    icon="drive_file_rename_outline"
+    size="sm"
+    [closeOnBackdrop]="!objectActionLoading"
+    (closed)="closeRenameDialog()"
+  >
+    <form class="s3-rename-form" (ngSubmit)="renameObject()">
+      <app-input
+        name="renameObjectKey"
+        [(ngModel)]="renameObjectKey"
+        [label]="t.renameDialog.objectKey"
+        [placeholder]="t.renameDialog.placeholder"
+        [helperText]="t.renameDialog.helper"
+        icon="key"
+        autocomplete="off"
+      />
+
+      <div class="s3-dialog-actions">
+        <app-button
+          type="button"
+          [label]="t.createDialog.cancel"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="objectActionLoading"
+          (pressed)="closeRenameDialog()"
+        />
+
+        <app-button
+          type="submit"
+          [label]="t.renameDialog.confirm"
+          icon="check"
+          iconPos="right"
+          [loading]="objectActionLoading"
+          [disabled]="!renameObjectKey.trim()"
+        />
+      </div>
+    </form>
+  </app-dialog>
+
+  <app-confirm-dialog
+    [open]="!!bucketPendingEmpty"
+    [title]="t.confirmEmpty.title"
+    [message]="t.confirmEmpty.message"
+    icon="delete_sweep"
+    [closeAriaLabel]="t.close"
+    [cancelLabel]="t.createDialog.cancel"
+    [confirmLabel]="t.confirmEmpty.confirm"
+    confirmIcon="delete_sweep"
+    [loading]="actionLoading"
+    (cancelled)="cancelEmpty()"
+    (confirmed)="confirmEmpty()"
+  />
+
+  <app-confirm-dialog
+    [open]="!!bucketPendingDelete"
+    [title]="t.confirmDelete.title"
+    [message]="t.confirmDelete.message"
+    icon="delete"
+    [closeAriaLabel]="t.close"
+    [cancelLabel]="t.createDialog.cancel"
+    [confirmLabel]="t.confirmDelete.confirm"
+    confirmIcon="delete"
+    [loading]="actionLoading"
+    (cancelled)="cancelDelete()"
+    (confirmed)="confirmDelete()"
+  />
+</section>

@@ -1,0 +1,124 @@
+<div class="dropdown-field" [class.dropdown-field-full]="fullWidth">
+  @if (label) {
+    <label class="dropdown-label" [for]="id">
+      {{ label }}
+    </label>
+  }
+
+  <div [ngClass]="classes">
+    <button
+      [id]="id"
+      type="button"
+      class="dropdown-trigger"
+      [disabled]="disabled"
+      [attr.aria-label]="ariaLabel || label || placeholder"
+      [attr.aria-expanded]="isOpen"
+      [attr.aria-haspopup]="'listbox'"
+      (click)="toggle()"
+    >
+      @if (icon) {
+        <span class="material-symbols-rounded dropdown-leading-icon" aria-hidden="true">
+          {{ icon }}
+        </span>
+      }
+
+      <span class="dropdown-value">
+        @if (selectedOption) {
+          @if (selectedOption.flag) {
+            <span class="dropdown-flag" aria-hidden="true">
+              {{ selectedOption.flag }}
+            </span>
+          }
+
+          @if (selectedOption.icon) {
+            <span class="material-symbols-rounded dropdown-option-icon" aria-hidden="true">
+              {{ selectedOption.icon }}
+            </span>
+          }
+
+          <span class="dropdown-selected-text">
+            {{ selectedOption.label }}
+          </span>
+        } @else {
+          <span class="dropdown-placeholder">
+            {{ placeholder }}
+          </span>
+        }
+      </span>
+
+      @if (clearable && hasValue && !disabled && !readonly) {
+        <span
+          class="material-symbols-rounded dropdown-clear"
+          aria-hidden="true"
+          (click)="clear($event)"
+        >
+          close
+        </span>
+      }
+
+      <span class="material-symbols-rounded dropdown-chevron" aria-hidden="true">
+        expand_more
+      </span>
+    </button>
+
+    @if (isOpen) {
+      <div class="dropdown-panel" role="listbox">
+        @for (option of options; track option.value; let i = $index) {
+          <button
+            type="button"
+            class="dropdown-option"
+            [style.--option-index]="i"
+            [class.dropdown-option-selected]="isSelected(option)"
+            [class.dropdown-option-disabled]="option.disabled"
+            [disabled]="option.disabled"
+            role="option"
+            [attr.aria-selected]="isSelected(option)"
+            (click)="selectOption(option)"
+          >
+            <span class="dropdown-option-content">
+              @if (option.flag) {
+                <span class="dropdown-flag" aria-hidden="true">
+                  {{ option.flag }}
+                </span>
+              }
+
+              @if (option.icon) {
+                <span class="material-symbols-rounded dropdown-option-icon" aria-hidden="true">
+                  {{ option.icon }}
+                </span>
+              }
+
+              <span class="dropdown-option-texts">
+                <span class="dropdown-option-label">
+                  {{ option.label }}
+                </span>
+
+                @if (showDescription && option.description) {
+                  <span class="dropdown-option-description">
+                    {{ option.description }}
+                  </span>
+                }
+              </span>
+            </span>
+
+            @if (isSelected(option)) {
+              <span class="material-symbols-rounded dropdown-check" aria-hidden="true">
+                check
+              </span>
+            }
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (displayedError) {
+    <small class="dropdown-error">
+      {{ displayedError }}
+    </small>
+  } @else if (helperText) {
+    <small class="dropdown-helper">
+      {{ helperText }}
+    </small>
+  }
+</div>

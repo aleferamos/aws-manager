@@ -1,0 +1,50 @@
+@if (open) {
+  <div class="dialog-root" role="presentation">
+    <button
+      type="button"
+      class="dialog-backdrop"
+      [attr.aria-label]="closeAriaLabel"
+      (click)="onBackdropClick()"
+    ></button>
+
+    <section
+      [class]="classes"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="title"
+    >
+      <header class="dialog-header">
+        <div class="dialog-heading">
+          @if (icon) {
+            <div class="dialog-icon" aria-hidden="true">
+              <span class="material-symbols-rounded">
+                {{ icon }}
+              </span>
+            </div>
+          }
+
+          <div class="dialog-title-block">
+            <h2>{{ title }}</h2>
+
+            @if (subtitle) {
+              <p>{{ subtitle }}</p>
+            }
+          </div>
+        </div>
+
+        <app-button
+          icon="close"
+          severity="secondary"
+          size="sm"
+          [text]="true"
+          [ariaLabel]="closeAriaLabel"
+          (pressed)="close()"
+        />
+      </header>
+
+      <div class="dialog-content">
+        <ng-content></ng-content>
+      </div>
+    </section>
+  </div>
+}

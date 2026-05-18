@@ -1,0 +1,160 @@
+<main class="home-page">
+  @if (!selectedCredential) {
+    <section class="home-empty-card">
+      <span class="material-symbols-rounded home-empty-icon" aria-hidden="true">vpn_key_off</span>
+      <div class="home-empty-copy">
+        <h1>{{ t.emptyCredential.title }}</h1>
+        <p>{{ t.emptyCredential.description }}</p>
+      </div>
+    </section>
+  } @else {
+  <section class="billing-card">
+    <header class="billing-header">
+      <div class="billing-heading">
+        <span class="billing-heading-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">monitoring</span>
+        </span>
+
+        <div class="billing-title">
+          <div class="billing-title-line">
+            <h1>{{ t.billing.title }}</h1>
+            <a
+              class="billing-info"
+              href="https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {{ t.billing.info }}
+            </a>
+          </div>
+
+          <span class="billing-context">
+            {{ selectedCredential.name }} - {{ selectedRegion }}
+          </span>
+        </div>
+      </div>
+
+      <button type="button" class="billing-menu" [attr.aria-label]="t.billing.moreOptions" (click)="reloadBilling()">
+        <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+      </button>
+    </header>
+
+    <div class="billing-content">
+      <aside class="billing-summary">
+        <div class="billing-metric billing-metric-brand">
+          <span class="material-symbols-rounded billing-metric-icon" aria-hidden="true">payments</span>
+          <span class="billing-metric-label">{{ t.billing.currentMonth }}</span>
+          <strong class="billing-metric-value">
+            {{ formatCurrency(totalAmount) }}
+          </strong>
+        </div>
+
+        <div class="billing-metric billing-metric-info">
+          <span class="material-symbols-rounded billing-metric-icon" aria-hidden="true">trending_up</span>
+          <span class="billing-metric-label">{{ t.billing.forecastedMonthEnd }}</span>
+          <strong class="billing-metric-value">
+            {{ formatCurrency(forecastAmount) }}
+          </strong>
+          <span class="billing-metric-note">{{ t.billing.forecastNote }}</span>
+        </div>
+
+        <div class="billing-metric billing-metric-success">
+          <span class="material-symbols-rounded billing-metric-icon" aria-hidden="true">savings</span>
+          <span class="billing-metric-label">{{ t.billing.savingsOpportunities }}</span>
+          <strong class="billing-saving">-</strong>
+        </div>
+      </aside>
+
+      <section class="billing-chart-panel">
+        <div class="billing-chart-title">
+          {{ t.billing.costTitle }}
+        </div>
+
+        @if (billingLoading) {
+          <div class="billing-state">
+            {{ t.billing.loading }}
+          </div>
+        } @else if (billingError) {
+          <div class="billing-state billing-state-error">
+            {{ billingError }}
+          </div>
+        } @else if (chartBars.length) {
+          <div class="billing-chart">
+            <div class="billing-axis">
+              <span>{{ formatAxisValue(chartAxisMax) }}</span>
+              <span>{{ formatAxisValue(chartAxisMiddle) }}</span>
+              <span>0</span>
+            </div>
+
+            <div class="billing-bars">
+              @for (bar of chartBars; track bar.label) {
+                <div class="billing-bar-item" tabindex="0">
+                  <div class="billing-bar" [attr.aria-label]="bar.label + ' ' + formatCurrency(bar.total)">
+                    @for (segment of bar.segments; track segment.key) {
+                      <span
+                        class="billing-bar-segment"
+                        [style.height.%]="segment.height"
+                        [style.background]="segment.color"
+                      ></span>
+                    }
+                  </div>
+                  <span class="billing-bar-label">{{ bar.label }}</span>
+
+                  <div class="billing-tooltip" role="tooltip">
+                    <strong>{{ bar.label }}</strong>
+
+                    @for (segment of bar.segments; track segment.key) {
+                      <span class="billing-tooltip-row">
+                        <span class="billing-tooltip-service">
+                          <span
+                            class="billing-tooltip-color"
+                            [style.background]="segment.color"
+                          ></span>
+                          {{ segment.key }}
+                        </span>
+
+                        <span class="billing-tooltip-value">
+                          {{ formatCurrency(segment.amount) }}
+                        </span>
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="billing-chart-caption">
+            {{ t.billing.chartCaption }}
+          </div>
+
+          <div class="billing-legend">
+            @for (item of legendItems; track item.key) {
+              <span class="billing-legend-item">
+                <span class="billing-legend-color" [style.background]="item.color"></span>
+                {{ item.key }}
+              </span>
+            }
+          </div>
+        } @else {
+          <div class="billing-state">
+            {{ t.billing.emptyUsage }}
+          </div>
+        }
+      </section>
+    </div>
+
+    <footer class="billing-footer">
+      <a
+        class="billing-footer-link"
+        href="https://console.aws.amazon.com/billing/home"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span>
+        {{ t.billing.billingLink }}
+      </a>
+    </footer>
+  </section>
+  }
+</main>

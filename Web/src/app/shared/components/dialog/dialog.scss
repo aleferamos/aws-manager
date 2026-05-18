@@ -1,0 +1,152 @@
+// ============================================================
+// AWS Manager Design System - Dialog Component
+// ============================================================
+
+.dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  overflow: auto;
+}
+
+.dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 0;
+  background: var(--surface-overlay);
+  backdrop-filter: blur(3px);
+}
+
+.dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, var(--dialog-width));
+  max-height: min(var(--dialog-max-height, 720px), calc(100vh - 40px));
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-2xl);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-lg);
+
+  animation: dialog-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dialog-sm {
+  --dialog-width: 420px;
+}
+
+.dialog-md {
+  --dialog-width: 560px;
+}
+
+.dialog-lg {
+  --dialog-width: 760px;
+}
+
+.dialog-xl {
+  --dialog-width: 1320px;
+  --dialog-max-height: 860px;
+}
+
+.dialog-header {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border-default);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dialog-heading {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dialog-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-lg);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+
+  span {
+    font-size: 21px;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  }
+}
+
+.dialog-title-block {
+  min-width: 0;
+
+  h2 {
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  p {
+    margin-top: 4px;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+  }
+}
+
+.dialog-content {
+  min-height: 0;
+  padding: 18px;
+  overflow: auto;
+}
+
+.theme-dark {
+  .dialog-icon {
+    background: var(--color-brand-950);
+    color: var(--color-brand-400);
+  }
+}
+
+@media (max-width: 640px) {
+  .dialog-root {
+    align-items: center;
+    padding: 12px;
+  }
+
+  .dialog {
+    max-height: calc(100dvh - 24px);
+    border-radius: var(--radius-xl);
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

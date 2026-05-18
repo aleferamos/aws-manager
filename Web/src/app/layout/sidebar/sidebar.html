@@ -1,0 +1,208 @@
+<aside
+  class="sidebar"
+  [class.sidebar-collapsed]="collapsed"
+  [class.sidebar-mobile-open]="mobileOpen"
+>
+  <div class="sidebar-brand">
+    <a
+      class="sidebar-brand-link"
+      routerLink="/home"
+      aria-label="AWS Manager home"
+      (click)="closeMobile.emit()"
+    >
+      <div class="sidebar-brand-icon">
+        <img src="logo.png" alt="" aria-hidden="true" />
+      </div>
+
+      @if (!collapsed) {
+        <div class="sidebar-brand-text">
+          <strong>{{ t.brandTitle }}</strong>
+          <span>{{ t.brandSubtitle }}</span>
+        </div>
+      }
+    </a>
+
+    <button
+      type="button"
+      class="sidebar-mobile-close"
+      aria-label="Close menu"
+      (click)="closeMobile.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">
+        close
+      </span>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav" aria-label="Main navigation">
+    @for (item of visibleMenuItems$ | async; track item.key) {
+      @if (!item.children?.length && item.route) {
+        <a
+          class="sidebar-link"
+          [routerLink]="item.route"
+          routerLinkActive="sidebar-link-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [attr.title]="collapsed ? getMenuLabel(item.key) : null"
+          (click)="closeMobile.emit()"
+        >
+          <span class="material-symbols-rounded sidebar-link-icon" aria-hidden="true">
+            {{ item.icon }}
+          </span>
+
+          @if (!collapsed) {
+            <span class="sidebar-link-label">
+              {{ getMenuLabel(item.key) }}
+            </span>
+          }
+        </a>
+      }
+
+      @if (item.children?.length) {
+        <div class="sidebar-group">
+          <button
+            type="button"
+            class="sidebar-group-trigger"
+            [attr.title]="collapsed ? getMenuLabel(item.key) : null"
+            (click)="!collapsed && toggleGroup(item.key)"
+          >
+            <span class="material-symbols-rounded sidebar-link-icon" aria-hidden="true">
+              {{ item.icon }}
+            </span>
+
+            @if (!collapsed) {
+              <span class="sidebar-link-label">
+                {{ getMenuLabel(item.key) }}
+              </span>
+
+              <span
+                class="material-symbols-rounded sidebar-chevron"
+                [class.sidebar-chevron-open]="isGroupOpen(item.key)"
+                aria-hidden="true"
+              >
+                expand_more
+              </span>
+            }
+          </button>
+
+          @if (!collapsed && isGroupOpen(item.key)) {
+            <div class="sidebar-submenu">
+              @for (child of item.children; track child.key) {
+                <a
+                  class="sidebar-sublink"
+                  [routerLink]="child.route"
+                  routerLinkActive="sidebar-sublink-active"
+                  (click)="closeMobile.emit()"
+                >
+                  <span class="material-symbols-rounded sidebar-sublink-icon" aria-hidden="true">
+                    {{ child.icon }}
+                  </span>
+
+                  <span>
+                    {{ getMenuLabel(child.key) }}
+                  </span>
+                </a>
+              }
+            </div>
+          }
+
+          @if (collapsed) {
+            <div class="sidebar-flyout">
+              <div class="sidebar-flyout-title">
+                {{ getMenuLabel(item.key) }}
+              </div>
+
+              @for (child of item.children; track child.key) {
+                <a
+                  class="sidebar-flyout-link"
+                  [routerLink]="child.route"
+                  routerLinkActive="sidebar-flyout-link-active"
+                  (click)="closeMobile.emit()"
+                >
+                  <span class="material-symbols-rounded sidebar-sublink-icon" aria-hidden="true">
+                    {{ child.icon }}
+                  </span>
+
+                  <span>
+                    {{ getMenuLabel(child.key) }}
+                  </span>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+
+    @if (updateAvailable) {
+      <button
+        type="button"
+        class="sidebar-link sidebar-update-link"
+        [attr.title]="collapsed ? getMenuLabel('updateAvailable') : null"
+        (click)="openUpdateDialog()"
+      >
+        <span class="material-symbols-rounded sidebar-link-icon" aria-hidden="true">
+          system_update_alt
+        </span>
+
+        @if (!collapsed) {
+          <span class="sidebar-link-label">
+            {{ getMenuLabel('updateAvailable') }}
+          </span>
+
+          <span class="sidebar-update-badge" aria-hidden="true">
+            {{ availableVersion }}
+          </span>
+        } @else {
+          <span class="sidebar-update-dot" aria-hidden="true"></span>
+        }
+      </button>
+    }
+  </nav>
+
+  <button
+    type="button"
+    class="sidebar-resizer"
+    aria-label="Resize sidebar"
+    (mousedown)="startResize($event)"
+  ></button>
+</aside>
+
+<app-dialog
+  [open]="updateDialogOpen"
+  [title]="t.updateDialog.title"
+  [subtitle]="t.updateDialog.subtitle"
+  icon="system_update_alt"
+  size="md"
+  [closeAriaLabel]="t.updateDialog.close"
+  (closed)="closeUpdateDialog()"
+>
+  <div class="sidebar-update-dialog">
+    <div class="sidebar-update-versions">
+      <div>
+        <span>{{ t.updateDialog.currentVersion }}</span>
+        <strong>{{ currentVersion }}</strong>
+      </div>
+
+      <div>
+        <span>{{ t.updateDialog.availableVersion }}</span>
+        <strong>{{ availableVersion }}</strong>
+      </div>
+    </div>
+
+    <p>{{ t.updateDialog.message }}</p>
+
+    <label class="sidebar-update-command-label">
+      {{ t.updateDialog.commandLabel }}
+    </label>
+
+    <pre class="sidebar-update-command"><code>{{ updateCommand }}</code></pre>
+
+    <div class="sidebar-update-actions">
+      <app-button
+        [label]="t.updateDialog.close"
+        severity="secondary"
+        (pressed)="closeUpdateDialog()"
+      />
+    </div>
+  </div>
+</app-dialog>

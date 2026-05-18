@@ -1,0 +1,13 @@
+.confirm-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 420px) {
+  .confirm-dialog-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+}

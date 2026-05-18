@@ -1,0 +1,183 @@
+<app-dialog
+  [open]="open"
+  [title]="title"
+  [subtitle]="t.detail.subtitle"
+  [closeAriaLabel]="t.close"
+  icon="security"
+  size="xl"
+  (closed)="close()"
+>
+  <div class="security-group-detail-dialog">
+    @if (detailLoading) {
+      <div class="security-group-detail-dialog-loading">
+        <span class="material-symbols-rounded" aria-hidden="true">progress_activity</span>
+        <span>{{ t.rulesTable.loading }}</span>
+      </div>
+    }
+
+    <dl class="security-group-detail-dialog-grid">
+      @for (field of detailFields; track field.label) {
+        <div class="security-group-detail-dialog-item">
+          <dt>{{ field.label }}</dt>
+          <dd>{{ field.value }}</dd>
+        </div>
+      }
+    </dl>
+
+    <div class="security-group-detail-dialog-tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab === 'inbound'"
+        [class.security-group-detail-dialog-tab-active]="activeTab === 'inbound'"
+        (click)="setTab('inbound')"
+      >
+        {{ t.tabs.inbound }}
+      </button>
+
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab === 'outbound'"
+        [class.security-group-detail-dialog-tab-active]="activeTab === 'outbound'"
+        (click)="setTab('outbound')"
+      >
+        {{ t.tabs.outbound }}
+      </button>
+
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab === 'tags'"
+        [class.security-group-detail-dialog-tab-active]="activeTab === 'tags'"
+        (click)="setTab('tags')"
+      >
+        {{ t.tabs.tags }}
+      </button>
+    </div>
+
+    @if (activeTab === 'tags') {
+      <h3 class="security-group-detail-dialog-section-title">
+        {{ t.tagsTable.title }} ({{ tags.length }})
+      </h3>
+
+      <app-table
+        [columns]="tagColumns"
+        [data]="tagRows"
+        [loading]="detailLoading"
+        [loadingLabel]="t.tagsTable.loading"
+        [emptyTitle]="t.tagsTable.emptyTitle"
+        [emptyDescription]="t.tagsTable.emptyDescription"
+      />
+    } @else {
+      @if (activeTab === 'inbound') {
+        <form
+          class="security-group-detail-dialog-rule-form"
+          [formGroup]="inboundRuleForm"
+          (ngSubmit)="submitInboundRule()"
+        >
+          <h3>{{ t.ruleForm.title }}</h3>
+
+          <div class="security-group-detail-dialog-rule-form-grid">
+            <app-drop-down
+              formControlName="type"
+              [label]="t.ruleForm.typeLabel"
+              [placeholder]="t.ruleForm.typePlaceholder"
+              [options]="inboundRuleTypeOptions"
+              icon="rule"
+            />
+
+            @if (showInboundRuleProtocol) {
+              <app-input
+                formControlName="protocol"
+                [label]="t.ruleForm.protocolLabel"
+                [placeholder]="t.ruleForm.protocolPlaceholder"
+                icon="settings_ethernet"
+              />
+            }
+
+            @if (showInboundRulePorts) {
+              <app-input
+                formControlName="fromPort"
+                [label]="t.ruleForm.fromPortLabel"
+                type="number"
+                icon="keyboard_tab"
+              />
+
+              <app-input
+                formControlName="toPort"
+                [label]="t.ruleForm.toPortLabel"
+                type="number"
+                icon="keyboard_tab_rtl"
+              />
+            }
+
+            <app-drop-down
+              formControlName="sourcePreset"
+              [label]="t.ruleForm.sourceTypeLabel"
+              [placeholder]="t.ruleForm.sourceTypePlaceholder"
+              [options]="sourcePresetOptions"
+              icon="hub"
+            />
+
+            <app-input
+              formControlName="source"
+              [label]="t.ruleForm.sourceLabel"
+              [placeholder]="t.ruleForm.sourcePlaceholder"
+              icon="public"
+            />
+
+            <app-input
+              formControlName="description"
+              [label]="t.ruleForm.descriptionLabel"
+              [placeholder]="t.ruleForm.descriptionPlaceholder"
+              icon="notes"
+            />
+          </div>
+
+          <div class="security-group-detail-dialog-rule-form-actions">
+            <app-button
+              type="submit"
+              [label]="t.ruleForm.add"
+              icon="add"
+              severity="primary"
+              [loading]="createInboundRuleLoading"
+              [disabled]="detailLoading"
+            />
+          </div>
+        </form>
+      }
+
+      <h3 class="security-group-detail-dialog-section-title">
+        {{ activeRulesTitle }}
+      </h3>
+
+      <app-table
+        [columns]="ruleColumns"
+        [data]="activeRuleRows"
+        rowKey="securityGroupRuleId"
+        [actions]="activeTab === 'inbound' ? inboundRuleActions : []"
+        actionsMode="menu"
+        [loading]="detailLoading"
+        [loadingLabel]="t.rulesTable.loading"
+        [emptyTitle]="activeTab === 'outbound' ? t.rulesTable.emptyOutboundTitle : t.rulesTable.emptyInboundTitle"
+        [emptyDescription]="t.rulesTable.emptyRulesDescription"
+        (actionSelected)="handleInboundRuleAction($event)"
+      />
+    }
+  </div>
+</app-dialog>
+
+<app-confirm-dialog
+  [open]="deleteInboundRuleDialogOpen"
+  [title]="t.deleteRuleDialog.title"
+  [message]="t.deleteRuleDialog.message"
+  icon="delete"
+  [closeAriaLabel]="t.close"
+  [cancelLabel]="t.deleteRuleDialog.cancel"
+  [confirmLabel]="t.deleteRuleDialog.confirm"
+  confirmIcon="delete"
+  [loading]="deleteInboundRuleLoading"
+  (cancelled)="closeDeleteInboundRuleDialog()"
+  (confirmed)="confirmDeleteInboundRule()"
+/>

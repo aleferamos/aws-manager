@@ -1,0 +1,136 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <button
+      type="button"
+      class="topbar-mobile-menu"
+      aria-label="Open menu"
+      (click)="openMobileSidebar.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">
+        menu
+      </span>
+    </button>
+
+    <button
+      type="button"
+      class="topbar-sidebar-toggle"
+      aria-label="Toggle sidebar"
+      (click)="toggleSidebar.emit()"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">
+        {{ sidebarCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}
+      </span>
+    </button>
+
+    <div class="topbar-title">
+      <span class="topbar-title-main">
+        {{ t.topbarTitle }}
+      </span>
+
+      <span class="topbar-title-sub">
+        {{ t.topbarSubtitle }}
+      </span>
+    </div>
+  </div>
+
+  <div class="topbar-actions" [formGroup]="form">
+    @if (credentials$ | async; as credentials) {
+      @if (credentials.length) {
+        <div class="topbar-credential">
+          <app-drop-down
+            formControlName="credentialId"
+            [options]="toCredentialOptions(credentials)"
+            icon="vpn_key"
+            [placeholder]="t.credentialPlaceholder"
+            size="md"
+          />
+        </div>
+
+        <div class="topbar-region">
+          <app-drop-down
+            formControlName="region"
+            [options]="regionOptions"
+            icon="travel_explore"
+            [placeholder]="t.regionPlaceholder"
+            size="md"
+          />
+        </div>
+      }
+    }
+
+    <div class="topbar-language">
+      <app-drop-down
+        formControlName="language"
+        [options]="languageOptions"
+        icon="language"
+        [placeholder]="t.languagePlaceholder"
+        size="md"
+        [showDescription]="false"
+      />
+    </div>
+
+    @if (currentUser$ | async; as currentUser) {
+      <div class="topbar-profile">
+        <button
+          type="button"
+          class="topbar-profile-trigger"
+          [attr.aria-label]="t.profileLabel"
+          [attr.aria-expanded]="profileMenuOpen"
+          aria-haspopup="menu"
+          (click)="toggleProfileMenu()"
+        >
+          <span class="topbar-avatar" aria-hidden="true">
+            {{ getInitials(currentUser) }}
+          </span>
+        </button>
+
+        @if (profileMenuOpen) {
+          <div class="topbar-profile-menu" role="menu">
+            <div class="topbar-profile-info">
+              <span class="topbar-profile-name">
+                {{ getDisplayName(currentUser) }}
+              </span>
+
+              @if (currentUserInfo$ | async; as currentUserInfo) {
+                <span class="topbar-profile-type">
+                  {{ getDisplayType(currentUserInfo) }}
+                </span>
+              }
+            </div>
+
+            @if (currentUserInfo$ | async; as currentUserInfo) {
+              @if (isRoot(currentUserInfo)) {
+                <button
+                  type="button"
+                  class="topbar-profile-action"
+                  role="menuitem"
+                  (click)="openSettings()"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">
+                    settings
+                  </span>
+
+                  <span>{{ t.settingsLabel }}</span>
+                </button>
+              }
+            }
+
+            <button
+              type="button"
+              class="topbar-profile-action"
+              role="menuitem"
+              [disabled]="logoutLoading"
+              (click)="logout()"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">
+                logout
+              </span>
+
+              <span>{{ t.logoutLabel }}</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</header>

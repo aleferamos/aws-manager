@@ -1,0 +1,136 @@
+.configuration-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.configuration-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.configuration-title-block {
+  min-width: 0;
+
+  h1 {
+    margin-top: 4px;
+    color: var(--text-primary);
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+    line-height: var(--line-height-heading);
+  }
+
+  p {
+    max-width: 680px;
+    margin-top: 6px;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-base);
+  }
+}
+
+.configuration-eyebrow {
+  color: var(--text-brand);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-section);
+  text-transform: uppercase;
+}
+
+.configuration-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.configuration-form-card,
+.configuration-info-card {
+  display: block;
+}
+
+.configuration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.configuration-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.configuration-info-icon {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+
+  .material-symbols-rounded {
+    font-size: 20px;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  }
+}
+
+.configuration-info-copy {
+  margin-top: 14px;
+
+  h2 {
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+
+  p {
+    margin-top: 8px;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+  }
+
+  dl {
+    margin: 18px 0 0;
+    padding: 12px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+  }
+
+  dt {
+    color: var(--text-tertiary);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 6px 0 0;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    overflow-wrap: anywhere;
+  }
+}
+
+.theme-dark {
+  .configuration-info-icon {
+    background: var(--color-brand-950);
+    color: var(--color-brand-400);
+  }
+}
+
+@media (max-width: 900px) {
+  .configuration-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .configuration-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

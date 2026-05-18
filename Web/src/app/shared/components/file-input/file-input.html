@@ -1,0 +1,39 @@
+<div class="file-input-field" [class.file-input-field-full]="fullWidth">
+  @if (label) {
+    <label class="file-input-label" [for]="id">
+      {{ label }}
+    </label>
+  }
+
+  <button
+    type="button"
+    [ngClass]="classes"
+    [disabled]="disabled"
+    [attr.aria-label]="ariaLabel || label || chooseLabel"
+    (click)="openPicker()"
+  >
+    <span class="material-symbols-rounded file-input-icon" aria-hidden="true">
+      {{ icon }}
+    </span>
+
+    <span class="file-input-name">{{ fileName }}</span>
+
+    <span class="file-input-action">{{ chooseLabel }}</span>
+  </button>
+
+  <input
+    #nativeInput
+    [id]="id"
+    class="file-input-native"
+    type="file"
+    [attr.accept]="accept ?? null"
+    [disabled]="disabled"
+    (change)="handleFileSelected($event)"
+  />
+
+  @if (helperText) {
+    <small class="file-input-helper">
+      {{ helperText }}
+    </small>
+  }
+</div>

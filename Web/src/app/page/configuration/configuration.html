@@ -1,0 +1,51 @@
+<section class="configuration-page">
+  <header class="configuration-header">
+    <div class="configuration-title-block">
+      <span class="configuration-eyebrow">{{ t.eyebrow }}</span>
+      <h1>{{ t.title }}</h1>
+      <p>{{ t.subtitle }}</p>
+    </div>
+  </header>
+
+  <div class="configuration-content">
+    <app-card class="configuration-form-card" padding="lg" [outlined]="true">
+      <form class="configuration-form" [formGroup]="form" (ngSubmit)="submit()">
+        <app-input
+          formControlName="siteUrl"
+          [label]="t.form.siteUrlLabel"
+          [placeholder]="t.form.siteUrlPlaceholder"
+          [helperText]="t.form.siteUrlHelper"
+          icon="link"
+        />
+
+        <div class="configuration-actions">
+          <app-button
+            type="submit"
+            [label]="t.form.save"
+            icon="save"
+            iconPos="right"
+            severity="primary"
+            [loading]="saving"
+            [disabled]="loading"
+          />
+        </div>
+      </form>
+    </app-card>
+
+    <app-card class="configuration-info-card" padding="lg" [outlined]="true">
+      <span class="configuration-info-icon" aria-hidden="true">
+        <span class="material-symbols-rounded">settings</span>
+      </span>
+
+      <div class="configuration-info-copy">
+        <h2>{{ t.info.title }}</h2>
+        <p>{{ t.info.description }}</p>
+
+        <dl>
+          <dt>{{ t.info.currentValue }}</dt>
+          <dd>{{ currentSiteUrl || '-' }}</dd>
+        </dl>
+      </div>
+    </app-card>
+  </div>
+</section>

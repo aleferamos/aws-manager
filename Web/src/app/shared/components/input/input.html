@@ -1,0 +1,47 @@
+<div class="input-field" [class.input-field-full]="fullWidth">
+  @if (label) {
+    <label class="input-label" [for]="id">
+      {{ label }}
+    </label>
+  }
+
+  <div class="input-wrapper" [class.input-wrapper-invalid]="hasError">
+    @if (icon && iconPos === 'left') {
+      <span class="material-symbols-rounded input-ico input-ico-left" aria-hidden="true">
+        {{ icon }}
+      </span>
+    }
+
+    <input
+      [id]="id"
+      [name]="name"
+      [type]="type"
+      [ngClass]="classes"
+      [value]="value"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [readonly]="readonly"
+      [autocomplete]="autocomplete"
+      [attr.aria-label]="ariaLabel || label || placeholder"
+      [attr.aria-invalid]="hasError"
+      (input)="handleInput($event)"
+      (blur)="handleBlur()"
+    />
+
+    @if (icon && iconPos === 'right') {
+      <span class="material-symbols-rounded input-ico input-ico-right" aria-hidden="true">
+        {{ icon }}
+      </span>
+    }
+  </div>
+
+  @if (displayedError) {
+    <small class="input-error">
+      {{ displayedError }}
+    </small>
+  } @else if (helperText) {
+    <small class="input-helper">
+      {{ helperText }}
+    </small>
+  }
+</div>

@@ -1,0 +1,100 @@
+<form class="auth-page" [formGroup]="form" (ngSubmit)="submit()">
+  <div class="auth-language">
+    <app-drop-down
+      formControlName="language"
+      [options]="languageOptions"
+      icon="language"
+      [placeholder]="t.languagePlaceholder"
+      size="md"
+      [showDescription]="false"
+    />
+  </div>
+
+  <app-card
+    class="auth-card"
+    [title]="t.title"
+    [subtitle]="t.subtitle"
+    icon="lock"
+    severity="brand"
+    [elevated]="true"
+  >
+    <div class="auth-form">
+      <app-input
+        formControlName="login"
+        [label]="t.loginLabel"
+        type="text"
+        [placeholder]="t.loginPlaceholder"
+        icon="person"
+        autocomplete="username"
+      />
+
+      <app-input
+        formControlName="password"
+        [label]="t.passwordLabel"
+        type="password"
+        [placeholder]="t.passwordPlaceholder"
+        icon="key"
+        autocomplete="current-password"
+      />
+
+      <div class="auth-actions-row">
+        <button type="button" class="auth-forgot-link" (click)="openForgotPasswordDialog()">
+          {{ t.forgotPassword }}
+        </button>
+      </div>
+
+      <app-button
+        type="submit"
+        [label]="t.loginButton"
+        severity="primary"
+        icon="login"
+        iconPos="right"
+        [fullWidth]="true"
+      />
+    </div>
+  </app-card>
+</form>
+
+<app-dialog
+  [open]="forgotPasswordDialogOpen"
+  [title]="t.forgotPasswordDialog.title"
+  [subtitle]="t.forgotPasswordDialog.subtitle"
+  [closeAriaLabel]="t.forgotPasswordDialog.close"
+  icon="lock_reset"
+  size="sm"
+  (closed)="closeForgotPasswordDialog()"
+>
+  <form
+    class="forgot-password-form"
+    [formGroup]="forgotPasswordForm"
+    (ngSubmit)="submitForgotPassword()"
+  >
+    <app-input
+      formControlName="email"
+      [label]="t.forgotPasswordDialog.emailLabel"
+      [placeholder]="t.forgotPasswordDialog.emailPlaceholder"
+      type="email"
+      icon="mail"
+      autocomplete="email"
+    />
+
+    <div class="forgot-password-actions">
+      <app-button
+        type="button"
+        [label]="t.forgotPasswordDialog.cancel"
+        severity="secondary"
+        [outlined]="true"
+        (pressed)="closeForgotPasswordDialog()"
+      />
+
+      <app-button
+        type="submit"
+        [label]="t.forgotPasswordDialog.submit"
+        severity="primary"
+        icon="send"
+        iconPos="right"
+        [loading]="forgotPasswordLoading"
+      />
+    </div>
+  </form>
+</app-dialog>

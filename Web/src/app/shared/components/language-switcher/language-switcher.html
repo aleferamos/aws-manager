@@ -1,0 +1,25 @@
+<button
+  type="button"
+  class="language-switcher"
+  (click)="toggleLanguage()"
+  [class.is-changing]="isChanging"
+  [attr.aria-label]="'Change language. Current language: ' + selectedLanguage.label"
+>
+  <span class="material-symbols-rounded language-switcher-icon" aria-hidden="true">
+    language
+  </span>
+
+  <span class="language-switcher-content">
+    <span class="language-switcher-flag" aria-hidden="true">
+      {{ selectedLanguage.flag }}
+    </span>
+
+    <span class="language-switcher-text">
+      {{ selectedLanguage.label }} / {{ selectedLanguage.country }}
+    </span>
+  </span>
+
+  <span class="material-symbols-rounded language-switcher-chevron" aria-hidden="true">
+    expand_more
+  </span>
+</button>
