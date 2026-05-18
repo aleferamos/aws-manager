@@ -23,19 +23,27 @@ O banco e inicializado automaticamente na primeira subida usando o script `docke
 ## Imagem unica
 
 Tambem existe uma imagem all-in-one para instalacao simples, com Web, API e Postgres no mesmo container.
-Use um volume para manter os dados do banco entre atualizacoes:
+Use um volume para manter os dados do banco entre atualizacoes e um arquivo `.env` para configurar o envio de e-mail.
+O arquivo `.env` deve existir no diretorio onde voce executar o comando `docker run`.
+
+Crie o `.env` a partir do exemplo:
 
 ```bash
-docker volume create aws_manager_data
-
-docker run -d \
-  --name aws-manager \
-  -p 4501:80 \
-  -v aws_manager_data:/var/lib/postgresql/data \
-  alefepdias/aws-manager:latest
+cp .env.example .env
 ```
 
-Se quiser subir ja carregando variaveis de ambiente, por exemplo para configurar envio de e-mail:
+Depois preencha:
+
+```env
+EMAIL_HOST=smtp-relay.brevo.com
+EMAIL_PORT=587
+EMAIL_USER=seu-usuario-smtp
+EMAIL_APP_PASSWORD=sua-chave-smtp
+EMAIL_FROM_EMAIL=seu-remetente-verificado
+EMAIL_FROM_NAME=AWS Manager
+```
+
+Para subir:
 
 ```bash
 docker volume create aws_manager_data
@@ -48,21 +56,7 @@ docker run -d \
   alefepdias/aws-manager:latest
 ```
 
-Para atualizar a aplicacao mantendo os dados:
-
-```bash
-docker pull alefepdias/aws-manager:latest
-
-docker rm -f aws-manager
-
-docker run -d \
-  --name aws-manager \
-  -p 4501:80 \
-  -v aws_manager_data:/var/lib/postgresql/data \
-  alefepdias/aws-manager:latest
-```
-
-Se estiver usando `.env` para e-mail:
+Para atualizar a aplicacao mantendo os dados, mantenha o `.env` no diretorio onde o comando sera executado:
 
 ```bash
 docker pull alefepdias/aws-manager:latest

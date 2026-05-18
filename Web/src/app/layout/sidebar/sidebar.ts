@@ -61,6 +61,7 @@ export class Sidebar implements OnInit {
     '  --name aws-manager \\\n' +
     '  -p 4501:80 \\\n' +
     '  -v aws_manager_data:/var/lib/postgresql/data \\\n' +
+    '  --env-file .env \\\n' +
     '  alefepdias/aws-manager:latest';
 
   availableVersion = CURRENT_APP_VERSION;
