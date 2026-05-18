@@ -25,27 +25,56 @@ O banco e inicializado automaticamente na primeira subida usando o script `docke
 Tambem existe uma imagem all-in-one para instalacao simples, com Web, API e Postgres no mesmo container.
 Use um volume para manter os dados do banco entre atualizacoes:
 
-```powershell
+```bash
 docker volume create aws_manager_data
 
-docker run -d `
-  --name aws-manager `
-  -p 4501:80 `
-  -v aws_manager_data:/var/lib/postgresql/data `
-  alefepdias/aws-manager:1.1.0
+docker run -d \
+  --name aws-manager \
+  -p 4501:80 \
+  -v aws_manager_data:/var/lib/postgresql/data \
+  alefepdias/aws-manager:latest
+```
+
+Se quiser subir ja carregando variaveis de ambiente, por exemplo para configurar envio de e-mail:
+
+```bash
+docker volume create aws_manager_data
+
+docker run -d \
+  --name aws-manager \
+  -p 4501:80 \
+  -v aws_manager_data:/var/lib/postgresql/data \
+  --env-file .env \
+  alefepdias/aws-manager:latest
 ```
 
 Para atualizar a aplicacao mantendo os dados:
 
-```powershell
-docker stop aws-manager
-docker rm aws-manager
+```bash
+docker pull alefepdias/aws-manager:latest
 
-docker run -d `
-  --name aws-manager `
-  -p 4501:80 `
-  -v aws_manager_data:/var/lib/postgresql/data `
-  alefepdias/aws-manager:1.1.0
+docker rm -f aws-manager
+
+docker run -d \
+  --name aws-manager \
+  -p 4501:80 \
+  -v aws_manager_data:/var/lib/postgresql/data \
+  alefepdias/aws-manager:latest
+```
+
+Se estiver usando `.env` para e-mail:
+
+```bash
+docker pull alefepdias/aws-manager:latest
+
+docker rm -f aws-manager
+
+docker run -d \
+  --name aws-manager \
+  -p 4501:80 \
+  -v aws_manager_data:/var/lib/postgresql/data \
+  --env-file .env \
+  alefepdias/aws-manager:latest
 ```
 
 Ao subir uma versao nova usando o mesmo volume, a imagem aplica automaticamente as migracoes em `Docker/postgres/migrations` que ainda nao foram registradas na tabela `schema_migrations`.
@@ -53,13 +82,13 @@ Para cada release com mudanca de banco, crie um novo arquivo sequencial, por exe
 
 Para gerar a imagem localmente:
 
-```powershell
+```bash
 docker build -f Dockerfile.all-in-one -t alefepdias/aws-manager:1.1.0 .
 ```
 
 Para publicar no Docker Hub:
 
-```powershell
+```bash
 docker login
 docker push alefepdias/aws-manager:1.1.0
 docker tag alefepdias/aws-manager:1.1.0 alefepdias/aws-manager:latest
@@ -96,10 +125,21 @@ copy .env.example .env
 ```
 
 Depois preencha `EMAIL_USER`, `EMAIL_APP_PASSWORD` e `EMAIL_FROM_EMAIL` no arquivo `.env`.
-Com isso, o mesmo comando de subida ja carrega as credenciais automaticamente:
+Com Docker Compose, o mesmo comando de desenvolvimento ja carrega as credenciais automaticamente:
 
 ```powershell
 docker compose up --build
+```
+
+Com a imagem unica, use o `--env-file .env`:
+
+```bash
+docker run -d \
+  --name aws-manager \
+  -p 4501:80 \
+  -v aws_manager_data:/var/lib/postgresql/data \
+  --env-file .env \
+  alefepdias/aws-manager:latest
 ```
 
 ## Resetar o banco
