@@ -43,7 +43,7 @@ cp .env.example .env
 Depois preencha:
 
 ```env
-EMAIL_HOST=smtp-relay.brevo.com
+EMAIL_HOST=smtp.seu-provedor.com
 EMAIL_PORT=587
 EMAIL_USER=seu-usuario-smtp
 EMAIL_APP_PASSWORD=sua-chave-smtp
@@ -81,21 +81,6 @@ docker run -d \
 
 Ao subir uma versao nova usando o mesmo volume, a imagem aplica automaticamente as migracoes em `Docker/postgres/migrations` que ainda nao foram registradas na tabela `schema_migrations`.
 Para cada release com mudanca de banco, crie um novo arquivo sequencial, por exemplo `002_1_2_0.sql`.
-
-Para gerar a imagem localmente:
-
-```bash
-docker build -f Dockerfile.all-in-one -t alefepdias/aws-manager:1.1.0 .
-```
-
-Para publicar no Docker Hub:
-
-```bash
-docker login
-docker push alefepdias/aws-manager:1.1.0
-docker tag alefepdias/aws-manager:1.1.0 alefepdias/aws-manager:latest
-docker push alefepdias/aws-manager:latest
-```
 
 ## Aviso de atualizacao
 
