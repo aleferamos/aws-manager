@@ -8,8 +8,16 @@ Instalacao basica com Docker Compose para subir Postgres, API NestJS e Web Angul
 
 ## Subir o projeto
 
+Crie o arquivo `.env` a partir do exemplo e preencha as configuracoes de e-mail:
+
 ```powershell
-docker compose up --build
+copy .env.example .env
+```
+
+Se nao configurar o e-mail, a aplicacao ainda sobe, mas acoes que enviam e-mail exibirao aviso de configuracao ausente.
+
+```powershell
+docker compose --env-file .env up --build
 ```
 
 Depois acesse:
@@ -122,7 +130,7 @@ Depois preencha `EMAIL_USER`, `EMAIL_APP_PASSWORD` e `EMAIL_FROM_EMAIL` no arqui
 Com Docker Compose, o mesmo comando de desenvolvimento ja carrega as credenciais automaticamente:
 
 ```powershell
-docker compose up --build
+docker compose --env-file .env up --build
 ```
 
 Com a imagem unica, use o `--env-file .env`:
