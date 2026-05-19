@@ -257,6 +257,7 @@ COPY public.authority (id, code, name, description, scope, created_at) FROM stdi
 12	AWS_S3_OBJECT_DELETE	Aws s3 object delete	Permite excluir objetos selecionados dentro de buckets S3 da conta AWS vinculada a credencial.	CREDENTIAL	2026-05-13 15:20:00
 13	AWS_S3_OBJECT_DOWNLOAD	Aws s3 object download	Permite baixar objetos selecionados dentro de buckets S3 da conta AWS vinculada a credencial.	CREDENTIAL	2026-05-14 09:30:00
 14	AWS_S3_OBJECT_RENAME	Aws s3 object rename	Permite renomear objetos e prefixos dentro de buckets S3 da conta AWS vinculada a credencial.	CREDENTIAL	2026-05-14 09:30:00
+15	AWS_SECURITY_GROUP_EDIT_RULE	Aws security group edit rule	Permite editar tipo, origem e descricao de regras inbound em grupos de seguranca da conta AWS vinculada a credencial.	CREDENTIAL	2026-05-19 09:30:00
 \.
 
 
@@ -322,7 +323,7 @@ COPY public.user_credential_authority (user_credential_id, authority_id) FROM st
 -- Name: authority_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.authority_id_seq', 14, true);
+SELECT pg_catalog.setval('public.authority_id_seq', 15, true);
 
 
 --
