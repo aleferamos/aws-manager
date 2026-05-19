@@ -8,7 +8,9 @@ export interface LayoutTranslation {
   topbarSubtitle: string;
   languagePlaceholder: string;
   credentialPlaceholder: string;
+  credentialSearchPlaceholder: string;
   regionPlaceholder: string;
+  regionSearchPlaceholder: string;
   profileLabel: string;
   settingsLabel: string;
   logoutLabel: string;
@@ -46,7 +48,9 @@ export const layoutTranslations: Record<AppLanguage, LayoutTranslation> = {
     topbarSubtitle: 'Cloud administration platform',
     languagePlaceholder: 'Language',
     credentialPlaceholder: 'Credential',
+    credentialSearchPlaceholder: 'Search credential',
     regionPlaceholder: 'Region',
+    regionSearchPlaceholder: 'Search region',
     profileLabel: 'Profile',
     settingsLabel: 'Settings',
     logoutLabel: 'Logout',
@@ -83,7 +87,9 @@ export const layoutTranslations: Record<AppLanguage, LayoutTranslation> = {
     topbarSubtitle: 'Plataforma de administração em nuvem',
     languagePlaceholder: 'Idioma',
     credentialPlaceholder: 'Credencial',
+    credentialSearchPlaceholder: 'Buscar credencial',
     regionPlaceholder: 'Regiao',
+    regionSearchPlaceholder: 'Buscar regiao',
     profileLabel: 'Perfil',
     settingsLabel: 'Configuracao',
     logoutLabel: 'Sair',
