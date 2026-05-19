@@ -84,6 +84,10 @@ export const backendTranslations = {
         'Security group add rule authority is not configured.',
       addRuleAuthorityRequired:
         'Security group add rule authority is required.',
+      editRuleAuthorityNotConfigured:
+        'Security group edit rule authority is not configured.',
+      editRuleAuthorityRequired:
+        'Security group edit rule authority is required.',
       deleteRuleAuthorityNotConfigured:
         'Security group delete rule authority is not configured.',
       deleteRuleAuthorityRequired:
@@ -242,6 +246,10 @@ export const backendTranslations = {
         'A permissao de adicionar regras de security group nao esta configurada.',
       addRuleAuthorityRequired:
         'A permissao de adicionar regras de security group e obrigatoria.',
+      editRuleAuthorityNotConfigured:
+        'A permissao de editar regras de security group nao esta configurada.',
+      editRuleAuthorityRequired:
+        'A permissao de editar regras de security group e obrigatoria.',
       deleteRuleAuthorityNotConfigured:
         'A permissao de excluir regras de security group nao esta configurada.',
       deleteRuleAuthorityRequired:
@@ -409,6 +417,10 @@ export const backendTranslations = {
         'El permiso para agregar reglas de security group no esta configurado.',
       addRuleAuthorityRequired:
         'Se requiere permiso para agregar reglas de security group.',
+      editRuleAuthorityNotConfigured:
+        'El permiso para editar reglas de security group no esta configurado.',
+      editRuleAuthorityRequired:
+        'Se requiere permiso para editar reglas de security group.',
       deleteRuleAuthorityNotConfigured:
         'El permiso para eliminar reglas de security group no esta configurado.',
       deleteRuleAuthorityRequired:
@@ -533,6 +545,8 @@ export type TranslationKey =
   | 'securityGroup.authorityRequired'
   | 'securityGroup.addRuleAuthorityNotConfigured'
   | 'securityGroup.addRuleAuthorityRequired'
+  | 'securityGroup.editRuleAuthorityNotConfigured'
+  | 'securityGroup.editRuleAuthorityRequired'
   | 'securityGroup.deleteRuleAuthorityNotConfigured'
   | 'securityGroup.deleteRuleAuthorityRequired'
   | 'securityGroup.awsConnectionFailed'

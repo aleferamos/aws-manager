@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -12,6 +13,7 @@ import {
 
 import { CreateInboundRuleDto } from './dto/create-inbound-rule.dto';
 import { ListSecurityGroupsQueryDto } from './dto/list-security-groups-query.dto';
+import { UpdateInboundRuleDto } from './dto/update-inbound-rule.dto';
 import { SecurityGroupService } from './security-group.service';
 import { CookieAuthGuard } from '../shared/auth/cookie-auth.guard';
 import type { AuthenticatedRequest } from '../shared/auth/cookie-auth.guard';
@@ -51,6 +53,26 @@ export class SecurityGroupController {
       groupId,
       createInboundRuleDto,
     );
+  }
+
+  @Patch(':groupId/inbound-rules/:ruleId')
+  @UseGuards(CookieAuthGuard)
+  async updateInboundRule(
+    @Param('groupId') groupId: string,
+    @Param('ruleId') ruleId: string,
+    @Body() updateInboundRuleDto: UpdateInboundRuleDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    await this.securityGroupService.updateInboundRule(
+      request.user!.id,
+      groupId,
+      ruleId,
+      updateInboundRuleDto,
+    );
+
+    return {
+      success: true,
+    };
   }
 
   @Delete(':groupId/inbound-rules/:ruleId')

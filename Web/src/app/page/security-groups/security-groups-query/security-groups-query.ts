@@ -24,6 +24,7 @@ import {
 } from '../../../shared/services/credential-context.service';
 import { LanguageService } from '../../../shared/services/language.service';
 import {
+  CreateSecurityGroupInboundRuleDto,
   SecurityGroupItem,
   SecurityGroupRuleItem,
   SecurityGroupService,
@@ -63,6 +64,16 @@ export class SecurityGroupsQuery implements OnInit {
     description: [''],
   });
 
+  readonly editInboundRuleForm = this.fb.group({
+    type: ['Custom TCP', [Validators.required]],
+    protocol: ['tcp'],
+    fromPort: [''],
+    toPort: [''],
+    sourcePreset: ['custom' as SourcePreset],
+    source: ['0.0.0.0/0', [Validators.required]],
+    description: [''],
+  });
+
   selectedCredential: SelectedCredential | null = null;
   selectedRegion = this.credentialContext.selectedRegion;
   securityGroups: SecurityGroupItem[] = [];
@@ -73,11 +84,14 @@ export class SecurityGroupsQuery implements OnInit {
   detailDialogOpen = false;
   detailLoading = false;
   createInboundRuleLoading = false;
+  updateInboundRuleLoading = false;
   deleteInboundRuleLoading = false;
   deleteInboundRuleDialogOpen = false;
+  editInboundRuleDialogOpen = false;
   activeDetailTab: SecurityGroupDetailTab = 'inbound';
   securityGroupsLoading = false;
   private inboundRulePendingDelete: SecurityGroupRuleItem | null = null;
+  private inboundRulePendingEdit: SecurityGroupRuleItem | null = null;
 
   ngOnInit(): void {
     combineLatest([
@@ -110,7 +124,19 @@ export class SecurityGroupsQuery implements OnInit {
     this.inboundRuleForm.controls.sourcePreset.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((preset) => {
-        this.applySourcePreset(preset);
+        this.applySourcePreset(preset, this.inboundRuleForm);
+      });
+
+    this.editInboundRuleForm.controls.type.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((type) => {
+        this.applyInboundRuleTypeDefaults(type, this.editInboundRuleForm);
+      });
+
+    this.editInboundRuleForm.controls.sourcePreset.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((preset) => {
+        this.applySourcePreset(preset, this.editInboundRuleForm);
       });
   }
 
@@ -183,6 +209,12 @@ export class SecurityGroupsQuery implements OnInit {
 
   get inboundRuleActions(): TableAction[] {
     return [
+      {
+        key: 'edit',
+        label: this.t.actions.edit,
+        icon: 'edit',
+        severity: 'secondary',
+      },
       {
         key: 'delete',
         label: this.t.actions.delete,
@@ -383,6 +415,18 @@ export class SecurityGroupsQuery implements OnInit {
     return ['Custom TCP', 'Custom UDP', 'Custom Protocol'].includes(this.selectedInboundRuleType);
   }
 
+  get selectedEditInboundRuleType(): string {
+    return this.editInboundRuleForm.controls.type.getRawValue();
+  }
+
+  get showEditInboundRuleProtocol(): boolean {
+    return this.selectedEditInboundRuleType === 'Custom Protocol';
+  }
+
+  get showEditInboundRulePorts(): boolean {
+    return ['Custom TCP', 'Custom UDP', 'Custom Protocol'].includes(this.selectedEditInboundRuleType);
+  }
+
   get tagRows(): TableRow[] {
     return this.detailTags.map((tag) => ({
       key: tag.key || '-',
@@ -417,40 +461,13 @@ export class SecurityGroupsQuery implements OnInit {
       return;
     }
 
-    if (this.inboundRuleForm.invalid) {
-      this.inboundRuleForm.markAllAsTouched();
+    const payload = this.buildInboundRulePayload(
+      this.inboundRuleForm,
+      this.showInboundRulePorts,
+    );
+
+    if (!payload) {
       return;
-    }
-
-    const { type, protocol, fromPort, toPort, source, description } =
-      this.inboundRuleForm.getRawValue();
-    const payload = {
-      credentialId: this.selectedCredential.id,
-      region: this.selectedRegion,
-      type,
-      source: source.trim(),
-      ...(description.trim() ? { description: description.trim() } : {}),
-    };
-
-    const protocolValue = this.getProtocolForInboundRule(type, protocol);
-
-    if (protocolValue) {
-      Object.assign(payload, { protocol: protocolValue });
-    }
-
-    if (this.showInboundRulePorts) {
-      const parsedFromPort = Number(fromPort);
-      const parsedToPort = Number(toPort);
-
-      if (!Number.isInteger(parsedFromPort) || !Number.isInteger(parsedToPort)) {
-        this.toast.error(this.t.toast.ruleCreateErrorSummary, this.t.ruleForm.invalidPorts, 4000);
-        return;
-      }
-
-      Object.assign(payload, {
-        fromPort: parsedFromPort,
-        toPort: parsedToPort,
-      });
     }
 
     this.createInboundRuleLoading = true;
@@ -480,19 +497,48 @@ export class SecurityGroupsQuery implements OnInit {
   }
 
   handleInboundRuleAction(event: TableActionEvent): void {
-    if (event.action.key !== 'delete') {
-      return;
-    }
-
     const ruleId = String(event.row['securityGroupRuleId'] ?? '');
 
     if (!ruleId) {
       return;
     }
 
-    this.inboundRulePendingDelete =
-      this.inboundDetailRules.find((rule) => rule.securityGroupRuleId === ruleId) ?? null;
-    this.deleteInboundRuleDialogOpen = true;
+    const rule = this.inboundDetailRules.find((item) => item.securityGroupRuleId === ruleId) ?? null;
+
+    if (!rule) {
+      return;
+    }
+
+    if (event.action.key === 'edit') {
+      this.startEditInboundRule(rule);
+      return;
+    }
+
+    if (event.action.key === 'delete') {
+      this.inboundRulePendingDelete = rule;
+      this.deleteInboundRuleDialogOpen = true;
+    }
+  }
+
+  cancelEditInboundRule(): void {
+    if (this.updateInboundRuleLoading) {
+      return;
+    }
+
+    this.editInboundRuleDialogOpen = false;
+    this.inboundRulePendingEdit = null;
+    this.resetEditInboundRuleForm();
+  }
+
+  submitEditInboundRule(): void {
+    const payload = this.buildInboundRulePayload(
+      this.editInboundRuleForm,
+      this.showEditInboundRulePorts,
+    );
+
+    if (payload) {
+      this.updateInboundRule(payload);
+    }
   }
 
   closeDeleteInboundRuleDialog(): void {
@@ -533,6 +579,7 @@ export class SecurityGroupsQuery implements OnInit {
           this.toast.success(this.t.toast.ruleDeletedSummary, this.t.toast.ruleDeletedDetail, 4000);
           this.deleteInboundRuleDialogOpen = false;
           this.inboundRulePendingDelete = null;
+          this.cancelEditInboundRule();
           this.refreshSelectedSecurityGroup();
         },
         error: (error) => {
@@ -639,7 +686,10 @@ export class SecurityGroupsQuery implements OnInit {
     this.detailTags = [];
     this.deleteInboundRuleDialogOpen = false;
     this.inboundRulePendingDelete = null;
+    this.editInboundRuleDialogOpen = false;
+    this.inboundRulePendingEdit = null;
     this.resetInboundRuleForm();
+    this.resetEditInboundRuleForm();
   }
 
   private refreshSelectedSecurityGroup(): void {
@@ -667,15 +717,132 @@ export class SecurityGroupsQuery implements OnInit {
     });
   }
 
-  private applyInboundRuleTypeDefaults(type: string): void {
+  private resetEditInboundRuleForm(): void {
+    this.editInboundRuleForm.reset({
+      type: 'Custom TCP',
+      protocol: 'tcp',
+      fromPort: '',
+      toPort: '',
+      sourcePreset: 'custom',
+      source: '0.0.0.0/0',
+      description: '',
+    });
+  }
+
+  private buildInboundRulePayload(
+    form: typeof this.inboundRuleForm,
+    showPorts: boolean,
+  ): CreateSecurityGroupInboundRuleDto | null {
+    if (!this.selectedCredential) {
+      return null;
+    }
+
+    if (form.invalid) {
+      form.markAllAsTouched();
+      return null;
+    }
+
+    const { type, protocol, fromPort, toPort, source, description } =
+      form.getRawValue();
+    const payload: CreateSecurityGroupInboundRuleDto = {
+      credentialId: this.selectedCredential.id,
+      region: this.selectedRegion,
+      type,
+      source: source.trim(),
+      description: description.trim(),
+    };
+    const protocolValue = this.getProtocolForInboundRule(type, protocol);
+
+    if (protocolValue) {
+      payload.protocol = protocolValue;
+    }
+
+    if (showPorts) {
+      const parsedFromPort = Number(fromPort);
+      const parsedToPort = Number(toPort);
+
+      if (!Number.isInteger(parsedFromPort) || !Number.isInteger(parsedToPort)) {
+        this.toast.error(this.t.toast.ruleCreateErrorSummary, this.t.ruleForm.invalidPorts, 4000);
+        return null;
+      }
+
+      payload.fromPort = parsedFromPort;
+      payload.toPort = parsedToPort;
+    }
+
+    return payload;
+  }
+
+  private startEditInboundRule(rule: SecurityGroupRuleItem): void {
+    this.inboundRulePendingEdit = rule;
+    this.editInboundRuleDialogOpen = true;
+    this.editInboundRuleForm.reset({
+      type: this.resolveRuleFormType(rule),
+      protocol: this.resolveRuleFormProtocol(rule),
+      fromPort: this.resolveRuleFormFromPort(rule),
+      toPort: this.resolveRuleFormToPort(rule),
+      sourcePreset: this.resolveSourcePreset(rule.source ?? ''),
+      source: rule.source ?? '',
+      description: rule.description ?? '',
+    });
+  }
+
+  private updateInboundRule(payload: CreateSecurityGroupInboundRuleDto): void {
+    if (
+      !this.selectedSecurityGroup?.groupId ||
+      !this.inboundRulePendingEdit?.securityGroupRuleId
+    ) {
+      return;
+    }
+
+    this.updateInboundRuleLoading = true;
+
+    this.securityGroupService
+      .updateInboundRule(
+        this.selectedSecurityGroup.groupId,
+        this.inboundRulePendingEdit.securityGroupRuleId,
+        payload,
+      )
+      .pipe(
+        finalize(() => {
+          this.updateInboundRuleLoading = false;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success(this.t.toast.ruleUpdatedSummary, this.t.toast.ruleUpdatedDetail, 4000);
+          this.editInboundRuleDialogOpen = false;
+          this.inboundRulePendingEdit = null;
+          this.resetEditInboundRuleForm();
+          this.refreshSelectedSecurityGroup();
+        },
+        error: (error) => {
+          const message =
+            error?.error?.message?.message ??
+            error?.error?.message ??
+            this.t.toast.ruleUpdateErrorDetail;
+
+          this.toast.error(this.t.toast.ruleUpdateErrorSummary, message, 5000);
+        },
+      });
+  }
+
+  private applyInboundRuleTypeDefaults(
+    type: string,
+    form: typeof this.inboundRuleForm = this.inboundRuleForm,
+  ): void {
     const protocol = this.getProtocolForInboundRule(type, '');
 
     if (protocol) {
-      this.inboundRuleForm.controls.protocol.setValue(protocol, { emitEvent: false });
+      form.controls.protocol.setValue(protocol, { emitEvent: false });
     }
   }
 
   private getProtocolForInboundRule(type: string, fallback: string): string | null {
+    if (type === 'All traffic') {
+      return '-1';
+    }
+
     if (type === 'Custom TCP') {
       return 'tcp';
     }
@@ -688,6 +855,14 @@ export class SecurityGroupsQuery implements OnInit {
       return 'icmp';
     }
 
+    if (type === 'All ICMP - IPv4') {
+      return 'icmp';
+    }
+
+    if (type === 'All ICMP - IPv6') {
+      return 'icmpv6';
+    }
+
     if (type === 'Custom Protocol') {
       return fallback.trim();
     }
@@ -695,25 +870,81 @@ export class SecurityGroupsQuery implements OnInit {
     return null;
   }
 
-  private applySourcePreset(preset: SourcePreset): void {
+  private resolveRuleFormType(rule: SecurityGroupRuleItem): string {
+    const type = rule.type || 'Custom TCP';
+    const option = this.inboundRuleTypeOptions.find((item) => item.value === type);
+
+    return option ? type : 'Custom Protocol';
+  }
+
+  private resolveRuleFormProtocol(rule: SecurityGroupRuleItem): string {
+    const protocol = rule.protocol?.toLowerCase();
+
+    if (!protocol || protocol === 'all') {
+      return '-1';
+    }
+
+    if (protocol === 'icmpv6') {
+      return 'icmpv6';
+    }
+
+    return protocol;
+  }
+
+  private resolveRuleFormFromPort(rule: SecurityGroupRuleItem): string {
+    const [fromPort] = this.parsePortRange(rule.portRange);
+    return fromPort;
+  }
+
+  private resolveRuleFormToPort(rule: SecurityGroupRuleItem): string {
+    const [fromPort, toPort] = this.parsePortRange(rule.portRange);
+    return toPort || fromPort;
+  }
+
+  private parsePortRange(portRange: string | null): [string, string] {
+    if (!portRange || portRange === 'All') {
+      return ['', ''];
+    }
+
+    const [fromPort, toPort] = portRange.split('-');
+
+    return [fromPort ?? '', toPort ?? fromPort ?? ''];
+  }
+
+  private resolveSourcePreset(source: string): SourcePreset {
+    if (source === '0.0.0.0/0') {
+      return 'anywhereIpv4';
+    }
+
+    if (source === '::/0') {
+      return 'anywhereIpv6';
+    }
+
+    return 'custom';
+  }
+
+  private applySourcePreset(
+    preset: SourcePreset,
+    form: typeof this.inboundRuleForm = this.inboundRuleForm,
+  ): void {
     if (preset === 'custom') {
       return;
     }
 
     if (preset === 'anywhereIpv4') {
-      this.inboundRuleForm.controls.source.setValue('0.0.0.0/0');
+      form.controls.source.setValue('0.0.0.0/0');
       return;
     }
 
     if (preset === 'anywhereIpv6') {
-      this.inboundRuleForm.controls.source.setValue('::/0');
+      form.controls.source.setValue('::/0');
       return;
     }
 
-    this.fillCurrentPublicIp();
+    this.fillCurrentPublicIp(form);
   }
 
-  private fillCurrentPublicIp(): void {
+  private fillCurrentPublicIp(form: typeof this.inboundRuleForm): void {
     fetch('https://api.ipify.org?format=json')
       .then((response) => {
         if (!response.ok) {
@@ -728,11 +959,11 @@ export class SecurityGroupsQuery implements OnInit {
         }
 
         const cidr = ip.includes(':') ? `${ip}/128` : `${ip}/32`;
-        this.inboundRuleForm.controls.source.setValue(cidr);
+        form.controls.source.setValue(cidr);
       })
       .catch(() => {
-        this.inboundRuleForm.controls.sourcePreset.setValue('custom', { emitEvent: false });
-        this.inboundRuleForm.controls.source.setValue('');
+        form.controls.sourcePreset.setValue('custom', { emitEvent: false });
+        form.controls.source.setValue('');
         this.toast.error(this.t.toast.sourceIpErrorSummary, this.t.toast.sourceIpErrorDetail, 5000);
       });
   }

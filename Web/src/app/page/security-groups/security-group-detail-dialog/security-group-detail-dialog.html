@@ -168,6 +168,99 @@
   </div>
 </app-dialog>
 
+<app-dialog
+  [open]="editInboundRuleDialogOpen"
+  [title]="t.ruleForm.editTitle"
+  [subtitle]="t.ruleForm.editSubtitle"
+  [closeAriaLabel]="t.close"
+  icon="edit"
+  size="md"
+  [closeOnBackdrop]="!updateInboundRuleLoading"
+  (closed)="cancelEditInboundRule()"
+>
+  <form
+    class="security-group-detail-dialog-rule-form security-group-detail-dialog-rule-form-dialog"
+    [formGroup]="editInboundRuleForm"
+    (ngSubmit)="submitEditInboundRule()"
+  >
+    <div class="security-group-detail-dialog-rule-form-grid">
+      <app-drop-down
+        formControlName="type"
+        [label]="t.ruleForm.typeLabel"
+        [placeholder]="t.ruleForm.typePlaceholder"
+        [options]="inboundRuleTypeOptions"
+        icon="rule"
+      />
+
+      @if (showEditInboundRuleProtocol) {
+        <app-input
+          formControlName="protocol"
+          [label]="t.ruleForm.protocolLabel"
+          [placeholder]="t.ruleForm.protocolPlaceholder"
+          icon="settings_ethernet"
+        />
+      }
+
+      @if (showEditInboundRulePorts) {
+        <app-input
+          formControlName="fromPort"
+          [label]="t.ruleForm.fromPortLabel"
+          type="number"
+          icon="keyboard_tab"
+        />
+
+        <app-input
+          formControlName="toPort"
+          [label]="t.ruleForm.toPortLabel"
+          type="number"
+          icon="keyboard_tab_rtl"
+        />
+      }
+
+      <app-drop-down
+        formControlName="sourcePreset"
+        [label]="t.ruleForm.sourceTypeLabel"
+        [placeholder]="t.ruleForm.sourceTypePlaceholder"
+        [options]="sourcePresetOptions"
+        icon="hub"
+      />
+
+      <app-input
+        formControlName="source"
+        [label]="t.ruleForm.sourceLabel"
+        [placeholder]="t.ruleForm.sourcePlaceholder"
+        icon="public"
+      />
+
+      <app-input
+        formControlName="description"
+        [label]="t.ruleForm.descriptionLabel"
+        [placeholder]="t.ruleForm.descriptionPlaceholder"
+        icon="notes"
+      />
+    </div>
+
+    <div class="security-group-detail-dialog-rule-form-actions">
+      <app-button
+        [label]="t.ruleForm.cancelEdit"
+        icon="close"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="updateInboundRuleLoading"
+        (pressed)="cancelEditInboundRule()"
+      />
+
+      <app-button
+        type="submit"
+        [label]="t.ruleForm.save"
+        icon="save"
+        severity="primary"
+        [loading]="updateInboundRuleLoading"
+      />
+    </div>
+  </form>
+</app-dialog>
+
 <app-confirm-dialog
   [open]="deleteInboundRuleDialogOpen"
   [title]="t.deleteRuleDialog.title"

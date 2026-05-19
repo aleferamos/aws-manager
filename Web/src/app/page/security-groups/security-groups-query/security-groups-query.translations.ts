@@ -9,6 +9,7 @@ export interface SecurityGroupsQueryTranslation {
 
   actions: {
     view: string;
+    edit: string;
     delete: string;
   };
 
@@ -70,6 +71,8 @@ export interface SecurityGroupsQueryTranslation {
 
   ruleForm: {
     title: string;
+    editTitle: string;
+    editSubtitle: string;
     typeLabel: string;
     typePlaceholder: string;
     protocolLabel: string;
@@ -83,6 +86,8 @@ export interface SecurityGroupsQueryTranslation {
     descriptionLabel: string;
     descriptionPlaceholder: string;
     add: string;
+    save: string;
+    cancelEdit: string;
     invalidPorts: string;
   };
 
@@ -118,6 +123,10 @@ export interface SecurityGroupsQueryTranslation {
     ruleDeletedDetail: string;
     ruleDeleteErrorSummary: string;
     ruleDeleteErrorDetail: string;
+    ruleUpdatedSummary: string;
+    ruleUpdatedDetail: string;
+    ruleUpdateErrorSummary: string;
+    ruleUpdateErrorDetail: string;
     sourceIpErrorSummary: string;
     sourceIpErrorDetail: string;
   };
@@ -133,6 +142,7 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
 
     actions: {
       view: 'View',
+      edit: 'Edit',
       delete: 'Delete',
     },
 
@@ -203,6 +213,8 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
 
     ruleForm: {
       title: 'Add inbound rule',
+      editTitle: 'Edit inbound rule',
+      editSubtitle: 'Update the type, source and description for this inbound rule.',
       typeLabel: 'Type',
       typePlaceholder: 'Select type',
       protocolLabel: 'Protocol',
@@ -216,6 +228,8 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
       descriptionLabel: 'Description',
       descriptionPlaceholder: 'Optional description',
       add: 'Add rule',
+      save: 'Save rule',
+      cancelEdit: 'Cancel edit',
       invalidPorts: 'Fill valid from/to ports for this rule type.',
     },
 
@@ -242,6 +256,10 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
       ruleDeletedDetail: 'Inbound rule was deleted successfully.',
       ruleDeleteErrorSummary: 'Delete rule error',
       ruleDeleteErrorDetail: 'Unable to delete inbound rule. Try again in a moment.',
+      ruleUpdatedSummary: 'Rule updated',
+      ruleUpdatedDetail: 'Inbound rule was updated successfully.',
+      ruleUpdateErrorSummary: 'Edit rule error',
+      ruleUpdateErrorDetail: 'Unable to edit inbound rule. Try again in a moment.',
       sourceIpErrorSummary: 'IP lookup error',
       sourceIpErrorDetail: 'Unable to detect your public IP. Fill the source manually.',
     },
@@ -256,6 +274,7 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
 
     actions: {
       view: 'Visualizar',
+      edit: 'Editar',
       delete: 'Excluir',
     },
 
@@ -326,6 +345,8 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
 
     ruleForm: {
       title: 'Adicionar regra inbound',
+      editTitle: 'Editar regra inbound',
+      editSubtitle: 'Atualize o tipo, origem e descricao desta regra inbound.',
       typeLabel: 'Tipo',
       typePlaceholder: 'Selecione o tipo',
       protocolLabel: 'Protocolo',
@@ -339,6 +360,8 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
       descriptionLabel: 'Descricao',
       descriptionPlaceholder: 'Descricao opcional',
       add: 'Adicionar regra',
+      save: 'Salvar regra',
+      cancelEdit: 'Cancelar edicao',
       invalidPorts: 'Preencha portas inicial/final validas para este tipo de regra.',
     },
 
@@ -365,6 +388,10 @@ export const securityGroupsQueryTranslations: Record<AppLanguage, SecurityGroups
       ruleDeletedDetail: 'Regra inbound excluida com sucesso.',
       ruleDeleteErrorSummary: 'Erro ao excluir regra',
       ruleDeleteErrorDetail: 'Nao foi possivel excluir a regra inbound. Tente novamente em instantes.',
+      ruleUpdatedSummary: 'Regra atualizada',
+      ruleUpdatedDetail: 'Regra inbound atualizada com sucesso.',
+      ruleUpdateErrorSummary: 'Erro ao editar regra',
+      ruleUpdateErrorDetail: 'Nao foi possivel editar a regra inbound. Tente novamente em instantes.',
       sourceIpErrorSummary: 'Erro ao buscar IP',
       sourceIpErrorDetail: 'Nao foi possivel detectar seu IP publico. Preencha a origem manualmente.',
     },

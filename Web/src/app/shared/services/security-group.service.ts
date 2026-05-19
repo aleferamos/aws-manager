@@ -62,6 +62,8 @@ export interface CreateSecurityGroupInboundRuleDto {
   description?: string;
 }
 
+export type UpdateSecurityGroupInboundRuleDto = CreateSecurityGroupInboundRuleDto;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -97,6 +99,20 @@ export class SecurityGroupService {
   createInboundRule(groupId: string, payload: CreateSecurityGroupInboundRuleDto) {
     return this.httpClient.post(
       `${this.urlSecurityGroups}/${encodeURIComponent(groupId)}/inbound-rules`,
+      payload,
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  updateInboundRule(
+    groupId: string,
+    ruleId: string,
+    payload: UpdateSecurityGroupInboundRuleDto,
+  ) {
+    return this.httpClient.patch(
+      `${this.urlSecurityGroups}/${encodeURIComponent(groupId)}/inbound-rules/${encodeURIComponent(ruleId)}`,
       payload,
       {
         withCredentials: true,

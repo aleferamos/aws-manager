@@ -16,6 +16,7 @@ import {
   SecurityGroupRuleDto,
   SecurityGroupTagDto,
 } from './dto/security-group.dto';
+import { UpdateInboundRuleDto } from './dto/update-inbound-rule.dto';
 import { Authority } from '../authority/entities/authority.entity';
 import { CredentialEncryptionService } from '../credential/credential-encryption.service';
 import { Credential } from '../credential/entities/credential.entity';
@@ -26,6 +27,7 @@ import { User } from '../user/entities/user.entity';
 
 const SECURITY_GROUP_AUTHORITY_CODE = 'AWS_SECURITY_GROUP_LIST';
 const SECURITY_GROUP_ADD_RULE_AUTHORITY_CODE = 'AWS_SECURITY_GROUP_ADD_RULE';
+const SECURITY_GROUP_EDIT_RULE_AUTHORITY_CODE = 'AWS_SECURITY_GROUP_EDIT_RULE';
 const SECURITY_GROUP_DELETE_RULE_AUTHORITY_CODE =
   'AWS_SECURITY_GROUP_DELETE_RULE';
 const EC2_SERVICE = 'ec2';
@@ -34,6 +36,15 @@ const EC2_CONTENT_TYPE = 'application/x-www-form-urlencoded; charset=utf-8';
 
 type InboundRuleDefinition = {
   protocol: string;
+  fromPort?: number;
+  toPort?: number;
+  source: string;
+  description?: string;
+};
+
+type InboundRuleInput = {
+  type?: string;
+  protocol?: string;
   fromPort?: number;
   toPort?: number;
   source: string;
@@ -246,6 +257,49 @@ export class SecurityGroupService {
     });
   }
 
+  async updateInboundRule(
+    userId: string,
+    groupId: string,
+    ruleId: string,
+    updateInboundRuleDto: UpdateInboundRuleDto,
+  ): Promise<void> {
+    const securityGroupId = this.normalizeRequiredParam(groupId, 'groupId');
+    const securityGroupRuleId = this.normalizeRequiredParam(ruleId, 'ruleId');
+    const [user, credential] = await Promise.all([
+      this.findUserOrFail(userId),
+      this.findCredentialWithSecretsOrFail(updateInboundRuleDto.credentialId),
+    ]);
+
+    if (!credential.active) {
+      throw new BadRequestException({
+        code: 'SECURITY_GROUP_CREDENTIAL_INACTIVE',
+        message: this.i18n.translate('securityGroup.credentialInactive'),
+      });
+    }
+
+    await this.assertCanEditSecurityGroupRule(user, credential.id);
+
+    const secrets = this.credentialEncryptionService.decrypt(
+      credential.encryptedFile,
+    );
+    const rule = this.resolveInboundRule(updateInboundRuleDto);
+
+    await this.callEc2({
+      accessKeyId: secrets.accessKeyId,
+      secretAccessKey: secrets.secretKeyId,
+      region: updateInboundRuleDto.region.trim(),
+      parameters: {
+        Action: 'ModifySecurityGroupRules',
+        GroupId: securityGroupId,
+        Version: EC2_API_VERSION,
+        ...this.buildModifySecurityGroupRuleParameters(
+          securityGroupRuleId,
+          rule,
+        ),
+      },
+    });
+  }
+
   private async findUserOrFail(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: {
@@ -386,6 +440,23 @@ export class SecurityGroupService {
     });
   }
 
+  private async assertCanEditSecurityGroupRule(
+    user: User,
+    credentialId: string,
+  ): Promise<void> {
+    await this.assertHasCredentialAuthority({
+      user,
+      credentialId,
+      authorityCode: SECURITY_GROUP_EDIT_RULE_AUTHORITY_CODE,
+      authorityNotConfiguredCode:
+        'SECURITY_GROUP_EDIT_RULE_AUTHORITY_NOT_CONFIGURED',
+      authorityRequiredCode: 'SECURITY_GROUP_EDIT_RULE_AUTHORITY_REQUIRED',
+      authorityNotConfiguredMessageKey:
+        'securityGroup.editRuleAuthorityNotConfigured',
+      authorityRequiredMessageKey: 'securityGroup.editRuleAuthorityRequired',
+    });
+  }
+
   private async assertHasCredentialAuthority(options: {
     user: User;
     credentialId: string;
@@ -394,9 +465,11 @@ export class SecurityGroupService {
     authorityRequiredCode: string;
     authorityNotConfiguredMessageKey:
       | 'securityGroup.addRuleAuthorityNotConfigured'
+      | 'securityGroup.editRuleAuthorityNotConfigured'
       | 'securityGroup.deleteRuleAuthorityNotConfigured';
     authorityRequiredMessageKey:
       | 'securityGroup.addRuleAuthorityRequired'
+      | 'securityGroup.editRuleAuthorityRequired'
       | 'securityGroup.deleteRuleAuthorityRequired';
   }): Promise<void> {
     if (options.user.isRoot) {
@@ -467,15 +540,13 @@ export class SecurityGroupService {
     return normalizedValue;
   }
 
-  private resolveInboundRule(
-    createInboundRuleDto: CreateInboundRuleDto,
-  ): InboundRuleDefinition {
-    const preset = this.getRulePreset(createInboundRuleDto.type);
-    const protocol = preset?.protocol ?? createInboundRuleDto.protocol;
-    const fromPort = preset?.fromPort ?? createInboundRuleDto.fromPort;
-    const toPort = preset?.toPort ?? createInboundRuleDto.toPort ?? fromPort;
-    const source = createInboundRuleDto.source.trim();
-    const description = createInboundRuleDto.description?.trim();
+  private resolveInboundRule(ruleDto: InboundRuleInput): InboundRuleDefinition {
+    const preset = this.getRulePreset(ruleDto.type);
+    const protocol = preset?.protocol ?? ruleDto.protocol;
+    const fromPort = preset?.fromPort ?? ruleDto.fromPort;
+    const toPort = preset?.toPort ?? ruleDto.toPort ?? fromPort;
+    const source = ruleDto.source.trim();
+    const description = ruleDto.description?.trim();
 
     if (!protocol || !source) {
       throw this.invalidInboundRuleException();
@@ -514,17 +585,39 @@ export class SecurityGroupService {
       Pick<InboundRuleDefinition, 'protocol' | 'fromPort' | 'toPort'>
     >([
       ['ALL TRAFFIC', { protocol: '-1' }],
+      ['ALL TCP', { protocol: 'tcp', fromPort: 0, toPort: 65535 }],
+      ['ALL UDP', { protocol: 'udp', fromPort: 0, toPort: 65535 }],
+      ['ALL ICMP - IPV4', { protocol: 'icmp', fromPort: -1, toPort: -1 }],
+      ['ALL ICMP - IPV6', { protocol: 'icmpv6', fromPort: -1, toPort: -1 }],
       ['CUSTOM TCP', { protocol: 'tcp' }],
       ['CUSTOM UDP', { protocol: 'udp' }],
       ['CUSTOM ICMP', { protocol: 'icmp' }],
+      ['CUSTOM ICMP - IPV4', { protocol: 'icmp' }],
       ['SSH', { protocol: 'tcp', fromPort: 22, toPort: 22 }],
       ['SMTP', { protocol: 'tcp', fromPort: 25, toPort: 25 }],
       ['DNS', { protocol: 'tcp', fromPort: 53, toPort: 53 }],
+      ['DNS (TCP)', { protocol: 'tcp', fromPort: 53, toPort: 53 }],
+      ['DNS (UDP)', { protocol: 'udp', fromPort: 53, toPort: 53 }],
       ['HTTP', { protocol: 'tcp', fromPort: 80, toPort: 80 }],
+      ['POP3', { protocol: 'tcp', fromPort: 110, toPort: 110 }],
+      ['IMAP', { protocol: 'tcp', fromPort: 143, toPort: 143 }],
+      ['LDAP', { protocol: 'tcp', fromPort: 389, toPort: 389 }],
       ['HTTPS', { protocol: 'tcp', fromPort: 443, toPort: 443 }],
+      ['SMB', { protocol: 'tcp', fromPort: 445, toPort: 445 }],
+      ['SMTPS', { protocol: 'tcp', fromPort: 465, toPort: 465 }],
+      ['IMAPS', { protocol: 'tcp', fromPort: 993, toPort: 993 }],
+      ['POP3S', { protocol: 'tcp', fromPort: 995, toPort: 995 }],
+      ['MSSQL', { protocol: 'tcp', fromPort: 1433, toPort: 1433 }],
+      ['NFS', { protocol: 'tcp', fromPort: 2049, toPort: 2049 }],
       ['MYSQL/AURORA', { protocol: 'tcp', fromPort: 3306, toPort: 3306 }],
       ['RDP', { protocol: 'tcp', fromPort: 3389, toPort: 3389 }],
       ['POSTGRESQL', { protocol: 'tcp', fromPort: 5432, toPort: 5432 }],
+      ['REDSHIFT', { protocol: 'tcp', fromPort: 5439, toPort: 5439 }],
+      ['ORACLE-RDS', { protocol: 'tcp', fromPort: 1521, toPort: 1521 }],
+      ['WINRM-HTTP', { protocol: 'tcp', fromPort: 5985, toPort: 5985 }],
+      ['WINRM-HTTPS', { protocol: 'tcp', fromPort: 5986, toPort: 5986 }],
+      ['ELASTIC GRAPHICS', { protocol: 'tcp', fromPort: 2007, toPort: 2007 }],
+      ['CQLSH / CASSANDRA', { protocol: 'tcp', fromPort: 9042, toPort: 9042 }],
     ]);
 
     return presets.get(normalizedType) ?? null;
@@ -580,6 +673,49 @@ export class SecurityGroupService {
     if (rule.description) {
       parameters['IpPermissions.1.IpRanges.1.Description'] = rule.description;
     }
+
+    return parameters;
+  }
+
+  private buildModifySecurityGroupRuleParameters(
+    ruleId: string,
+    rule: InboundRuleDefinition,
+  ): Record<string, string> {
+    const parameters: Record<string, string> = {
+      'SecurityGroupRule.1.SecurityGroupRuleId': ruleId,
+      'SecurityGroupRule.1.SecurityGroupRule.IpProtocol': rule.protocol,
+      'SecurityGroupRule.1.SecurityGroupRule.Description':
+        rule.description ?? '',
+    };
+
+    if (rule.protocol !== '-1') {
+      parameters['SecurityGroupRule.1.SecurityGroupRule.FromPort'] = String(
+        rule.fromPort,
+      );
+      parameters['SecurityGroupRule.1.SecurityGroupRule.ToPort'] = String(
+        rule.toPort,
+      );
+    }
+
+    if (rule.source.startsWith('sg-')) {
+      parameters['SecurityGroupRule.1.SecurityGroupRule.ReferencedGroupId'] =
+        rule.source;
+      return parameters;
+    }
+
+    if (rule.source.startsWith('pl-')) {
+      parameters['SecurityGroupRule.1.SecurityGroupRule.PrefixListId'] =
+        rule.source;
+      return parameters;
+    }
+
+    if (rule.source.includes(':')) {
+      parameters['SecurityGroupRule.1.SecurityGroupRule.CidrIpv6'] =
+        rule.source;
+      return parameters;
+    }
+
+    parameters['SecurityGroupRule.1.SecurityGroupRule.CidrIpv4'] = rule.source;
 
     return parameters;
   }
