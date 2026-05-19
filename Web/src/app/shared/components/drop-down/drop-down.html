@@ -62,7 +62,11 @@
     </button>
 
     @if (isOpen) {
-      <div class="dropdown-panel" role="listbox">
+      <div
+        class="dropdown-panel"
+        role="listbox"
+        [style.--dropdown-panel-max-height.px]="panelMaxHeight"
+      >
         @for (option of options; track option.value; let i = $index) {
           <button
             type="button"

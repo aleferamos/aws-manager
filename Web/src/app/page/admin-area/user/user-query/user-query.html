@@ -160,7 +160,7 @@
     [subtitle]="t.dialog.viewSubtitle"
     [closeAriaLabel]="t.dialog.close"
     icon="visibility"
-    size="md"
+    size="lg"
     (closed)="closeViewUserDialog()"
   >
     <form class="user-dialog-form" [formGroup]="viewUserForm" (ngSubmit)="submitUpdateUser()">
@@ -224,15 +224,7 @@
             [placeholder]="t.access.selectAuthority"
             [options]="systemAuthorityOptions"
             icon="admin_panel_settings"
-          />
-
-          <app-button
-            type="button"
-            [label]="t.access.add"
-            icon="add"
-            severity="primary"
-            [disabled]="userAccessLoading || accessActionLoading"
-            (pressed)="addSystemAuthorityToUser()"
+            [panelMaxHeight]="360"
           />
         </div>
 
@@ -244,7 +236,7 @@
               <button
                 type="button"
                 [attr.aria-label]="t.access.remove"
-                [disabled]="accessActionLoading"
+                [disabled]="updateUserLoading"
                 (click)="removeSystemAuthorityFromUser(authority.id)"
               >
                 <span class="material-symbols-rounded" aria-hidden="true">close</span>
@@ -268,15 +260,7 @@
             [placeholder]="t.access.selectCredential"
             [options]="credentialOptions"
             icon="vpn_key"
-          />
-
-          <app-button
-            type="button"
-            [label]="t.access.add"
-            icon="add"
-            severity="primary"
-            [disabled]="userAccessLoading || accessActionLoading"
-            (pressed)="addCredentialToUser()"
+            [panelMaxHeight]="320"
           />
         </div>
 
@@ -295,7 +279,7 @@
                     severity="secondary"
                     size="sm"
                     [outlined]="true"
-                    [disabled]="accessActionLoading"
+                    [disabled]="updateUserLoading"
                     (pressed)="toggleUserCredential(credential)"
                   />
 
@@ -306,7 +290,7 @@
                     size="sm"
                     [text]="true"
                     [ariaLabel]="t.access.remove"
-                    [disabled]="accessActionLoading"
+                    [disabled]="updateUserLoading"
                     (pressed)="removeCredentialFromUser(credential.userCredentialId)"
                   />
                 </div>
@@ -320,7 +304,7 @@
                     <button
                       type="button"
                       [attr.aria-label]="t.access.remove"
-                      [disabled]="accessActionLoading"
+                      [disabled]="updateUserLoading"
                       (click)="removeAuthorityFromUserCredential(credential.userCredentialId, authority.id)"
                     >
                       <span class="material-symbols-rounded" aria-hidden="true">close</span>
@@ -336,12 +320,13 @@
           }
         </div>
 
-        <div class="user-access-add" [formGroup]="userCredentialAuthorityForm">
+        <div class="user-access-add user-access-add-pair" [formGroup]="userCredentialAuthorityForm">
           <app-drop-down
             formControlName="userCredentialId"
             [placeholder]="t.access.selectCredential"
             [options]="userCredentialOptions"
             icon="vpn_key"
+            [panelMaxHeight]="320"
           />
 
           <app-drop-down
@@ -349,15 +334,7 @@
             [placeholder]="t.access.selectAuthority"
             [options]="credentialAuthorityOptions"
             icon="admin_panel_settings"
-          />
-
-          <app-button
-            type="button"
-            [label]="t.access.add"
-            icon="add"
-            severity="primary"
-            [disabled]="userAccessLoading || accessActionLoading"
-            (pressed)="addAuthorityToUserCredential()"
+            [panelMaxHeight]="360"
           />
         </div>
       </section>

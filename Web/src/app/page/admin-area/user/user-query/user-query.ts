@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { debounceTime, finalize, Observable } from 'rxjs';
+import { debounceTime, finalize, firstValueFrom } from 'rxjs';
 
 import { AppCard } from '../../../../shared/components/card/card';
 import { Dialog } from '../../../../shared/components/dialog/dialog';
@@ -69,14 +69,14 @@ export class UserQuery implements OnInit {
   readonly newUserForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
-    phone: ['', [Validators.required, Validators.maxLength(30)]],
+    phone: ['', [Validators.maxLength(30)]],
   });
 
   readonly viewUserForm = this.fb.group({
     active: [true],
     lastAccessAt: [''],
     name: ['', [Validators.required, Validators.maxLength(150)]],
-    phone: ['', [Validators.required, Validators.maxLength(30)]],
+    phone: ['', [Validators.maxLength(30)]],
   });
 
   readonly userSystemAuthorityForm = this.fb.group({
@@ -98,10 +98,10 @@ export class UserQuery implements OnInit {
   viewUserLoading = false;
   updateUserLoading = false;
   userAccessLoading = false;
-  accessActionLoading = false;
   usersLoading = false;
   users: ListUserItem[] = [];
   userAccess: AccessUserResponse | null = null;
+  private originalUserAccess: AccessUserResponse | null = null;
   systemAuthorities: ListAuthorityItem[] = [];
   credentialAuthorities: ListAuthorityItem[] = [];
   availableCredentials: ListCredentialItem[] = [];
@@ -113,6 +113,7 @@ export class UserQuery implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
     this.listenFilterChanges();
+    this.listenAccessDraftSelections();
   }
 
   get language(): AppLanguage {
@@ -206,12 +207,18 @@ export class UserQuery implements OnInit {
   }
 
   get systemAuthorityOptions(): DropDownOption[] {
-    return this.systemAuthorities.map((authority) => ({
-      label: authority.name,
-      value: authority.id,
-      icon: 'admin_panel_settings',
-      description: authority.code,
-    }));
+    const linkedAuthorityIds = new Set(
+      (this.userAccess?.systemAuthorities ?? []).map((authority) => authority.id),
+    );
+
+    return this.systemAuthorities
+      .filter((authority) => !linkedAuthorityIds.has(authority.id))
+      .map((authority) => ({
+        label: authority.name,
+        value: authority.id,
+        icon: 'admin_panel_settings',
+        description: authority.code,
+      }));
   }
 
   get credentialOptions(): DropDownOption[] {
@@ -316,7 +323,7 @@ export class UserQuery implements OnInit {
       .create({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        phone: phone.trim(),
+        phone: this.normalizeOptionalText(phone),
       })
       .pipe(
         finalize(() => {
@@ -354,7 +361,7 @@ export class UserQuery implements OnInit {
     this.loadUsers();
   }
 
-  submitUpdateUser(): void {
+  async submitUpdateUser(): Promise<void> {
     if (!this.selectedViewUserId || this.viewUserForm.invalid) {
       this.viewUserForm.markAllAsTouched();
       return;
@@ -364,34 +371,32 @@ export class UserQuery implements OnInit {
 
     this.setUpdateUserLoading(true);
 
-    this.userService
-      .update(this.selectedViewUserId, {
-        active,
-        person: {
-          name: name.trim(),
-          phone: phone.trim(),
-        },
-      })
-      .pipe(
-        finalize(() => {
-          this.setUpdateUserLoading(false);
+    try {
+      await firstValueFrom(
+        this.userService.update(this.selectedViewUserId, {
+          active,
+          person: {
+            name: name.trim(),
+            phone: this.normalizeOptionalText(phone),
+          },
         }),
-      )
-      .subscribe({
-        next: () => {
-          this.toast.success(this.t.toast.updatedSummary, this.t.toast.updatedDetail, 4000);
-          this.viewUserDialogOpen = false;
-          this.loadUsers();
-        },
-        error: (error) => {
-          const message =
-            error?.error?.message?.message ??
-            error?.error?.message ??
-            this.t.toast.updateErrorDetail;
+      );
 
-          this.toast.error(this.t.toast.updateErrorSummary, message, 5000);
-        },
-      });
+      await this.persistAccessDraft();
+
+      this.toast.success(this.t.toast.updatedSummary, this.t.toast.updatedDetail, 4000);
+      this.viewUserDialogOpen = false;
+      this.loadUsers();
+    } catch (error: any) {
+      const message =
+        error?.error?.message?.message ??
+        error?.error?.message ??
+        this.t.toast.updateErrorDetail;
+
+      this.toast.error(this.t.toast.updateErrorSummary, message, 5000);
+    } finally {
+      this.setUpdateUserLoading(false);
+    }
   }
 
   private loadUsers(): void {
@@ -438,6 +443,7 @@ export class UserQuery implements OnInit {
 
     this.selectedViewUserId = id;
     this.userAccess = null;
+    this.originalUserAccess = null;
     this.userSystemAuthorityForm.reset();
     this.userCredentialForm.reset();
     this.userCredentialAuthorityForm.reset();
@@ -471,92 +477,81 @@ export class UserQuery implements OnInit {
   }
 
   addSystemAuthorityToUser(): void {
-    if (!this.selectedViewUserId) {
-      return;
-    }
-
     const authorityId = this.userSystemAuthorityForm.controls.authorityId.getRawValue();
-
-    if (!authorityId) {
-      return;
-    }
-
-    this.runAccessAction(
-      this.accessService.addUserAuthority(this.selectedViewUserId, authorityId),
-      () => {
-        this.userSystemAuthorityForm.reset();
-        this.loadUserAccess(this.selectedViewUserId!);
-      },
-    );
+    this.addSystemAuthorityDraft(authorityId);
+    this.userSystemAuthorityForm.reset();
   }
 
   removeSystemAuthorityFromUser(authorityId: string): void {
-    if (!this.selectedViewUserId) {
+    if (!this.userAccess) {
       return;
     }
 
-    this.runAccessAction(
-      this.accessService.removeUserAuthority(this.selectedViewUserId, authorityId),
-      () => this.loadUserAccess(this.selectedViewUserId!),
-    );
+    this.userAccess = {
+      ...this.userAccess,
+      systemAuthorities: this.userAccess.systemAuthorities.filter(
+        (authority) => authority.id !== authorityId,
+      ),
+    };
   }
 
   addCredentialToUser(): void {
-    if (!this.selectedViewUserId) {
-      return;
-    }
-
     const credentialId = this.userCredentialForm.controls.credentialId.getRawValue();
-
-    if (!credentialId) {
-      return;
-    }
-
-    this.runAccessAction(
-      this.accessService.addUserCredential(this.selectedViewUserId, credentialId),
-      () => {
-        this.userCredentialForm.reset();
-        this.loadUserAccess(this.selectedViewUserId!);
-      },
-    );
+    this.addCredentialDraft(credentialId);
+    this.userCredentialForm.reset();
   }
 
   toggleUserCredential(credential: AccessCredential): void {
-    this.runAccessAction(
-      this.accessService.updateUserCredential(credential.userCredentialId, !credential.active),
-      () => this.selectedViewUserId && this.loadUserAccess(this.selectedViewUserId),
-    );
+    if (!this.userAccess) {
+      return;
+    }
+
+    this.userAccess = {
+      ...this.userAccess,
+      credentials: this.userAccess.credentials.map((currentCredential) =>
+        currentCredential.userCredentialId === credential.userCredentialId
+          ? { ...currentCredential, active: !currentCredential.active }
+          : currentCredential,
+      ),
+    };
   }
 
   removeCredentialFromUser(userCredentialId: string): void {
-    this.runAccessAction(
-      this.accessService.removeUserCredential(userCredentialId),
-      () => this.selectedViewUserId && this.loadUserAccess(this.selectedViewUserId),
-    );
+    if (!this.userAccess) {
+      return;
+    }
+
+    this.userAccess = {
+      ...this.userAccess,
+      credentials: this.userAccess.credentials.filter(
+        (credential) => credential.userCredentialId !== userCredentialId,
+      ),
+    };
   }
 
   addAuthorityToUserCredential(): void {
     const { userCredentialId, authorityId } =
       this.userCredentialAuthorityForm.getRawValue();
-
-    if (!userCredentialId || !authorityId) {
-      return;
-    }
-
-    this.runAccessAction(
-      this.accessService.addUserCredentialAuthority(userCredentialId, authorityId),
-      () => {
-        this.userCredentialAuthorityForm.controls.authorityId.reset();
-        this.selectedViewUserId && this.loadUserAccess(this.selectedViewUserId);
-      },
-    );
+    this.addCredentialAuthorityDraft(userCredentialId, authorityId);
+    this.userCredentialAuthorityForm.controls.authorityId.reset();
   }
 
   removeAuthorityFromUserCredential(userCredentialId: string, authorityId: string): void {
-    this.runAccessAction(
-      this.accessService.removeUserCredentialAuthority(userCredentialId, authorityId),
-      () => this.selectedViewUserId && this.loadUserAccess(this.selectedViewUserId),
-    );
+    if (!this.userAccess) {
+      return;
+    }
+
+    this.userAccess = {
+      ...this.userAccess,
+      credentials: this.userAccess.credentials.map((credential) =>
+        credential.userCredentialId === userCredentialId
+          ? {
+              ...credential,
+              authorities: credential.authorities.filter((authority) => authority.id !== authorityId),
+            }
+          : credential,
+      ),
+    };
   }
 
   private listenFilterChanges(): void {
@@ -565,6 +560,32 @@ export class UserQuery implements OnInit {
       .subscribe(() => {
         this.page = 1;
         this.loadUsers();
+      });
+  }
+
+  private listenAccessDraftSelections(): void {
+    this.userSystemAuthorityForm.controls.authorityId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((authorityId) => {
+        this.addSystemAuthorityDraft(authorityId);
+        this.userSystemAuthorityForm.controls.authorityId.reset('', { emitEvent: false });
+      });
+
+    this.userCredentialForm.controls.credentialId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((credentialId) => {
+        this.addCredentialDraft(credentialId);
+        this.userCredentialForm.controls.credentialId.reset('', { emitEvent: false });
+      });
+
+    this.userCredentialAuthorityForm.controls.authorityId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((authorityId) => {
+        const userCredentialId =
+          this.userCredentialAuthorityForm.controls.userCredentialId.getRawValue();
+
+        this.addCredentialAuthorityDraft(userCredentialId, authorityId);
+        this.userCredentialAuthorityForm.controls.authorityId.reset('', { emitEvent: false });
       });
   }
 
@@ -580,13 +601,16 @@ export class UserQuery implements OnInit {
       )
       .subscribe({
         next: (access) => {
-          this.userAccess = {
+          const normalizedAccess = {
             systemAuthorities: this.normalizeAccessAuthorities(
               this.getArrayValue(access, ['systemAuthorities', 'authorities']),
             ),
             credentials: this.getArrayValue(access, ['credentials', 'userCredentials'])
               .map((credential) => this.normalizeAccessCredential(credential)),
           };
+
+          this.userAccess = normalizedAccess;
+          this.originalUserAccess = this.cloneUserAccess(normalizedAccess);
         },
         error: (error) => {
           const message =
@@ -625,29 +649,235 @@ export class UserQuery implements OnInit {
       });
   }
 
-  private runAccessAction(request: Observable<unknown>, onSuccess: () => void): void {
-    this.setAccessActionLoading(true);
+  private addSystemAuthorityDraft(authorityId: string | number | boolean | null): void {
+    if (!this.userAccess || !authorityId) {
+      return;
+    }
 
-    request
-      .pipe(
-        finalize(() => {
-          this.setAccessActionLoading(false);
-        }),
-      )
-      .subscribe({
-        next: () => {
-          this.toast.success(this.t.toast.accessUpdatedSummary, this.t.toast.accessUpdatedDetail, 3000);
-          onSuccess();
-        },
-        error: (error) => {
-          const message =
-            error?.error?.message?.message ??
-            error?.error?.message ??
-            this.t.toast.accessUpdateErrorDetail;
+    const normalizedAuthorityId = String(authorityId);
+    const authority = this.systemAuthorities.find((item) => item.id === normalizedAuthorityId);
 
-          this.toast.error(this.t.toast.accessUpdateErrorSummary, message, 5000);
+    if (
+      !authority ||
+      this.userAccess.systemAuthorities.some((item) => item.id === normalizedAuthorityId)
+    ) {
+      return;
+    }
+
+    this.userAccess = {
+      ...this.userAccess,
+      systemAuthorities: [
+        ...this.userAccess.systemAuthorities,
+        {
+          id: authority.id,
+          code: authority.code,
+          name: authority.name,
+          scope: authority.scope,
         },
-      });
+      ],
+    };
+  }
+
+  private addCredentialDraft(credentialId: string | number | boolean | null): void {
+    if (!this.userAccess || !credentialId) {
+      return;
+    }
+
+    const normalizedCredentialId = String(credentialId);
+    const credential = this.availableCredentials.find((item) => item.id === normalizedCredentialId);
+
+    if (
+      !credential ||
+      this.userAccess.credentials.some((item) => item.credentialId === normalizedCredentialId)
+    ) {
+      return;
+    }
+
+    this.userAccess = {
+      ...this.userAccess,
+      credentials: [
+        ...this.userAccess.credentials,
+        {
+          credentialId: credential.id,
+          userCredentialId: this.createDraftUserCredentialId(credential.id),
+          name: credential.name,
+          active: true,
+          authorities: [],
+        },
+      ],
+    };
+  }
+
+  private addCredentialAuthorityDraft(
+    userCredentialId: string | number | boolean | null,
+    authorityId: string | number | boolean | null,
+  ): void {
+    if (!this.userAccess || !userCredentialId || !authorityId) {
+      return;
+    }
+
+    const normalizedUserCredentialId = String(userCredentialId);
+    const normalizedAuthorityId = String(authorityId);
+    const authority = this.credentialAuthorities.find((item) => item.id === normalizedAuthorityId);
+
+    if (!authority) {
+      return;
+    }
+
+    this.userAccess = {
+      ...this.userAccess,
+      credentials: this.userAccess.credentials.map((credential) => {
+        if (
+          credential.userCredentialId !== normalizedUserCredentialId ||
+          credential.authorities.some((item) => item.id === normalizedAuthorityId)
+        ) {
+          return credential;
+        }
+
+        return {
+          ...credential,
+          authorities: [
+            ...credential.authorities,
+            {
+              id: authority.id,
+              code: authority.code,
+              name: authority.name,
+              scope: authority.scope,
+            },
+          ],
+        };
+      }),
+    };
+  }
+
+  private async persistAccessDraft(): Promise<void> {
+    if (!this.selectedViewUserId || !this.originalUserAccess || !this.userAccess) {
+      return;
+    }
+
+    const originalSystemIds = new Set(
+      this.originalUserAccess.systemAuthorities.map((authority) => authority.id),
+    );
+    const currentSystemIds = new Set(
+      this.userAccess.systemAuthorities.map((authority) => authority.id),
+    );
+
+    for (const authorityId of currentSystemIds) {
+      if (!originalSystemIds.has(authorityId)) {
+        await firstValueFrom(this.accessService.addUserAuthority(this.selectedViewUserId, authorityId));
+      }
+    }
+
+    for (const authorityId of originalSystemIds) {
+      if (!currentSystemIds.has(authorityId)) {
+        await firstValueFrom(
+          this.accessService.removeUserAuthority(this.selectedViewUserId, authorityId),
+        );
+      }
+    }
+
+    const originalCredentialsByCredentialId = new Map(
+      this.originalUserAccess.credentials.map((credential) => [credential.credentialId, credential]),
+    );
+    const currentCredentialsByCredentialId = new Map(
+      this.userAccess.credentials.map((credential) => [credential.credentialId, credential]),
+    );
+
+    for (const originalCredential of this.originalUserAccess.credentials) {
+      if (!currentCredentialsByCredentialId.has(originalCredential.credentialId)) {
+        await firstValueFrom(
+          this.accessService.removeUserCredential(originalCredential.userCredentialId),
+        );
+      }
+    }
+
+    for (const currentCredential of this.userAccess.credentials) {
+      const originalCredential = originalCredentialsByCredentialId.get(currentCredential.credentialId);
+
+      if (!originalCredential) {
+        const createdCredential = await firstValueFrom(
+          this.accessService.addUserCredential(
+            this.selectedViewUserId,
+            currentCredential.credentialId,
+          ),
+        );
+        const createdCredentialRecord = this.asRecord(createdCredential);
+        const userCredentialId = this.toText(
+          createdCredentialRecord['userCredentialId'] ?? createdCredentialRecord['id'],
+        );
+
+        if (!userCredentialId) {
+          continue;
+        }
+
+        for (const authority of currentCredential.authorities) {
+          await firstValueFrom(
+            this.accessService.addUserCredentialAuthority(userCredentialId, authority.id),
+          );
+        }
+
+        continue;
+      }
+
+      if (originalCredential.active !== currentCredential.active) {
+        await firstValueFrom(
+          this.accessService.updateUserCredential(
+            originalCredential.userCredentialId,
+            currentCredential.active,
+          ),
+        );
+      }
+
+      await this.persistCredentialAuthoritiesDraft(originalCredential, currentCredential);
+    }
+  }
+
+  private async persistCredentialAuthoritiesDraft(
+    originalCredential: AccessCredential,
+    currentCredential: AccessCredential,
+  ): Promise<void> {
+    const originalAuthorityIds = new Set(
+      originalCredential.authorities.map((authority) => authority.id),
+    );
+    const currentAuthorityIds = new Set(
+      currentCredential.authorities.map((authority) => authority.id),
+    );
+
+    for (const authorityId of currentAuthorityIds) {
+      if (!originalAuthorityIds.has(authorityId)) {
+        await firstValueFrom(
+          this.accessService.addUserCredentialAuthority(
+            originalCredential.userCredentialId,
+            authorityId,
+          ),
+        );
+      }
+    }
+
+    for (const authorityId of originalAuthorityIds) {
+      if (!currentAuthorityIds.has(authorityId)) {
+        await firstValueFrom(
+          this.accessService.removeUserCredentialAuthority(
+            originalCredential.userCredentialId,
+            authorityId,
+          ),
+        );
+      }
+    }
+  }
+
+  private createDraftUserCredentialId(credentialId: string): string {
+    return `draft:${credentialId}`;
+  }
+
+  private cloneUserAccess(access: AccessUserResponse): AccessUserResponse {
+    return {
+      systemAuthorities: access.systemAuthorities.map((authority) => ({ ...authority })),
+      credentials: access.credentials.map((credential) => ({
+        ...credential,
+        authorities: credential.authorities.map((authority) => ({ ...authority })),
+      })),
+    };
   }
 
   private normalizeAccessCredential(value: unknown): AccessCredential {
@@ -742,8 +972,14 @@ export class UserQuery implements OnInit {
       active: user.active,
       lastAccessAt: this.formatDateTime(user.lastAccessAt),
       name: user.person.name,
-      phone: user.person.phone,
+      phone: user.person.phone ?? '',
     });
+  }
+
+  private normalizeOptionalText(value: string): string | null {
+    const normalizedValue = value.trim();
+
+    return normalizedValue || null;
   }
 
   private setViewUserLoading(value: boolean): void {
@@ -754,15 +990,11 @@ export class UserQuery implements OnInit {
   private setUpdateUserLoading(value: boolean): void {
     this.updateUserLoading = value;
     this.syncViewUserFormState();
+    this.syncAccessFormState();
   }
 
   private setUserAccessLoading(value: boolean): void {
     this.userAccessLoading = value;
-    this.syncAccessFormState();
-  }
-
-  private setAccessActionLoading(value: boolean): void {
-    this.accessActionLoading = value;
     this.syncAccessFormState();
   }
 
@@ -780,7 +1012,7 @@ export class UserQuery implements OnInit {
   }
 
   private syncAccessFormState(): void {
-    const disabled = this.userAccessLoading || this.accessActionLoading;
+    const disabled = this.userAccessLoading || this.updateUserLoading;
 
     this.setControlsDisabled(
       [

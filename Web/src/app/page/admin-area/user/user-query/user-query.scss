@@ -170,9 +170,13 @@
 
 .user-access-add {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   align-items: end;
+}
+
+.user-access-add-pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .access-chip-list {
@@ -325,6 +329,7 @@
   }
 
   .user-access-add,
+  .user-access-add-pair,
   .access-credential-main {
     grid-template-columns: 1fr;
     flex-direction: column;

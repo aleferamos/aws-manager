@@ -1,8 +1,9 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsNotEmpty,
   IsObject,
+  IsOptional,
   IsString,
   MaxLength,
   ValidateNested,
@@ -19,13 +20,22 @@ export class UpdateUserViewPersonDto {
   name: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(30, {
     context: {
       max: 30,
     },
   })
-  phone: string;
+  @Transform(({ value }) => {
+    if (typeof value !== 'string') {
+      return value;
+    }
+
+    const normalizedValue = value.trim();
+
+    return normalizedValue || null;
+  })
+  phone?: string | null;
 }
 
 export class UpdateUserViewDto {

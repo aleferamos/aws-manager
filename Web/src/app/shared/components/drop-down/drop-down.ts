@@ -29,6 +29,7 @@ export class DropDown implements ControlValueAccessor {
 
   @Input() size: DropDownSize = 'md';
   @Input() fullWidth = true;
+  @Input() panelMaxHeight = 340;
 
   @Input() readonly = false;
   @Input() disabled = false;
@@ -184,7 +185,10 @@ export class DropDown implements ControlValueAccessor {
     const boundaryRect = boundary?.getBoundingClientRect();
     const boundaryBottom = boundaryRect?.bottom ?? window.innerHeight;
     const boundaryTop = boundaryRect?.top ?? 0;
-    const estimatedPanelHeight = Math.min(260, Math.max(44, this.options.length * 42 + 10));
+    const estimatedPanelHeight = Math.min(
+      this.panelMaxHeight,
+      Math.max(44, this.options.length * 42 + 10),
+    );
     const spaceBelow = boundaryBottom - rect.bottom;
     const spaceAbove = rect.top - boundaryTop;
 

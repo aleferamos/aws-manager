@@ -15,7 +15,7 @@ export interface UserInfo {
 export interface CreateUserDto {
   name: string;
   email: string;
-  phone: string;
+  phone?: string | null;
 }
 
 export interface DefineUserPasswordDto {
@@ -38,7 +38,7 @@ export interface UpdateUserViewDto {
   active: boolean;
   person: {
     name: string;
-    phone: string;
+    phone?: string | null;
   };
 }
 
@@ -76,7 +76,7 @@ export interface ViewUserResponse {
   person: {
     id: string;
     name: string;
-    phone: string;
+    phone: string | null;
   };
 }
 

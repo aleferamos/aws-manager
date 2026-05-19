@@ -71,7 +71,7 @@ export class UserService {
         const person = personRepository.create({
           name: createUserDto.name.trim(),
           email,
-          phone: createUserDto.phone.trim(),
+          phone: this.normalizeOptionalText(createUserDto.phone),
           document: null,
         });
         const savedPerson = await personRepository.save(person);
@@ -391,12 +391,18 @@ export class UserService {
       if (user.personId) {
         await personRepository.update(user.personId, {
           name: updateUserViewDto.person.name.trim(),
-          phone: updateUserViewDto.person.phone.trim(),
+          phone: this.normalizeOptionalText(updateUserViewDto.person.phone),
         });
       }
     });
 
     return this.view(id);
+  }
+
+  private normalizeOptionalText(value?: string | null): string | null {
+    const normalizedValue = value?.trim();
+
+    return normalizedValue || null;
   }
 
   private applyListSearchFilter(
