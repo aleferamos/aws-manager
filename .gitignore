@@ -17,6 +17,7 @@ Web/.angular/
 .env
 .env.*
 !.env.example
+Dockerfile.all-in-one
 
 # Logs
 logs/
