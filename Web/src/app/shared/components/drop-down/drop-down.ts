@@ -98,13 +98,14 @@ export class DropDown implements ControlValueAccessor {
 
   get filteredOptions(): DropDownOption[] {
     const normalizedSearch = this.normalizeSearch(this.searchTerm);
+    const searchTokens = normalizedSearch.split(' ').filter(Boolean);
 
     if (!normalizedSearch) {
       return this.options;
     }
 
-    return this.options.filter((option) =>
-      [
+    return this.options.filter((option) => {
+      const searchableValues = [
         option.label,
         option.description,
         option.value,
@@ -112,8 +113,13 @@ export class DropDown implements ControlValueAccessor {
         option.flag,
       ]
         .map((value) => this.normalizeSearch(value))
-        .some((value) => value.includes(normalizedSearch)),
-    );
+        .filter(Boolean);
+
+      return searchableValues.some((value) =>
+        value.includes(normalizedSearch) ||
+        searchTokens.every((token) => value.includes(token)),
+      );
+    });
   }
 
   get hasValue(): boolean {
@@ -267,6 +273,8 @@ export class DropDown implements ControlValueAccessor {
     return String(value ?? '')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
       .toLowerCase()
       .trim();
   }

@@ -385,7 +385,9 @@ export class UserQuery implements OnInit {
       await this.persistAccessDraft();
 
       this.toast.success(this.t.toast.updatedSummary, this.t.toast.updatedDetail, 4000);
-      this.viewUserDialogOpen = false;
+      if (this.userAccess) {
+        this.originalUserAccess = this.cloneUserAccess(this.userAccess);
+      }
       this.loadUsers();
     } catch (error: any) {
       const message =

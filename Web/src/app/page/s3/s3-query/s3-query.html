@@ -76,8 +76,19 @@
         [loadingLabel]="t.table.loading"
         [emptyTitle]="t.table.emptyTitle"
         [emptyDescription]="t.table.emptyDescription"
+        [paginator]="true"
+        [page]="bucketPage"
+        [pageSize]="bucketPageSize"
+        [pageSizeOptions]="bucketPageSizeOptions"
+        [pageSizeLabel]="t.objects.rowsPerPage"
+        [paginatorInfoTemplate]="t.objects.showing"
+        [firstPageLabel]="t.objects.firstPage"
+        [previousPageLabel]="t.objects.previousPage"
+        [nextPageLabel]="t.objects.nextPage"
+        [lastPageLabel]="t.objects.lastPage"
         (cellSelected)="handleBucketCellSelected($event)"
         (actionSelected)="handleActionSelected($event)"
+        (pageChange)="handleBucketPageChange($event)"
       />
     </app-card>
   }

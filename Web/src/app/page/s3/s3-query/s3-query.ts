@@ -17,6 +17,7 @@ import {
   TableActionEvent,
   TableCellEvent,
   TableColumn,
+  TablePageEvent,
   TableRow,
 } from '../../../shared/components/table/table';
 import { AppLanguage } from '../../../shared/config/languages.config';
@@ -70,6 +71,9 @@ export class S3Query implements OnInit {
   acknowledgeSingleAvailabilityZone = false;
   bucketPendingEmpty: S3BucketItem | null = null;
   bucketPendingDelete: S3BucketItem | null = null;
+  bucketPage = 1;
+  readonly bucketPageSize = 7;
+  readonly bucketPageSizeOptions = [7];
   selectedBucket: S3BucketItem | null = null;
   objectsDialogOpen = false;
   objectsLoading = false;
@@ -102,6 +106,7 @@ export class S3Query implements OnInit {
           this.loadBuckets(credential, region);
         } else {
           this.buckets = [];
+          this.bucketPage = 1;
           this.closeCreateDialog();
           this.closeConfirmDialogs();
         }
@@ -351,6 +356,10 @@ export class S3Query implements OnInit {
     if (bucket) {
       this.openObjectsDialog(bucket);
     }
+  }
+
+  handleBucketPageChange(event: TablePageEvent): void {
+    this.bucketPage = event.page;
   }
 
   openObjectsDialog(bucket: S3BucketItem): void {
@@ -782,9 +791,11 @@ export class S3Query implements OnInit {
       .subscribe({
         next: (response) => {
           this.buckets = response.items ?? [];
+          this.bucketPage = 1;
         },
         error: (error) => {
           this.buckets = [];
+          this.bucketPage = 1;
           this.toast.error(
             this.t.toast.listErrorSummary,
             this.getErrorMessage(error, this.t.toast.listErrorDetail),

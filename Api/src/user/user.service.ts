@@ -216,8 +216,13 @@ export class UserService {
     return this.repository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.person', 'person')
-      .where('LOWER(person.email) = :email', { email })
-      .orWhere('LOWER(user.login) = :email', { email })
+      .where(
+        new Brackets((queryBuilder) => {
+          queryBuilder
+            .where('LOWER(user.login) = :email', { email })
+            .orWhere('LOWER(person.email) = :email', { email });
+        }),
+      )
       .select([
         'user.id',
         'user.login',
@@ -226,6 +231,7 @@ export class UserService {
         'person.name',
         'person.email',
       ])
+      .orderBy('CASE WHEN LOWER(user.login) = :email THEN 0 ELSE 1 END', 'ASC')
       .getOne();
   }
 
@@ -235,8 +241,13 @@ export class UserService {
     return this.repository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.person', 'person')
-      .where('LOWER(person.email) = :email', { email })
-      .orWhere('LOWER(user.login) = :email', { email })
+      .where(
+        new Brackets((queryBuilder) => {
+          queryBuilder
+            .where('LOWER(user.login) = :email', { email })
+            .orWhere('LOWER(person.email) = :email', { email });
+        }),
+      )
       .select([
         'user.id',
         'user.login',
@@ -247,6 +258,7 @@ export class UserService {
       ])
       .addSelect('user.password')
       .addSelect('user.passwordRedefinitionCode')
+      .orderBy('CASE WHEN LOWER(user.login) = :email THEN 0 ELSE 1 END', 'ASC')
       .getOne();
   }
 
