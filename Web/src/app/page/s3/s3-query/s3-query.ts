@@ -2,7 +2,7 @@ import { Component, DestroyRef, HostListener, inject, OnInit } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { combineLatest, finalize } from 'rxjs';
+import { combineLatest, finalize, forkJoin } from 'rxjs';
 
 import { AppCard } from '../../../shared/components/card/card';
 import { Button } from '../../../shared/components/button/button';
@@ -82,7 +82,7 @@ export class S3Query implements OnInit {
   objects: S3ObjectItem[] = [];
   objectPrefix = '';
   objectKey = '';
-  selectedObjectFile: File | null = null;
+  selectedObjectFiles: File[] = [];
   selectedObjectKeys = new Set<string>();
   objectContextMenu: { object: S3ObjectItem; x: number; y: number } | null = null;
   objectPendingRename: S3ObjectItem | null = null;
@@ -180,7 +180,7 @@ export class S3Query implements OnInit {
   }
 
   get canUploadObject(): boolean {
-    return !!this.selectedBucket && !!this.selectedObjectFile && !!this.objectKey.trim();
+    return !!this.selectedBucket && this.selectedObjectFiles.length > 0;
   }
 
   get canDownloadObjects(): boolean {
@@ -367,7 +367,7 @@ export class S3Query implements OnInit {
     this.objectsDialogOpen = true;
     this.objectPrefix = '';
     this.objectKey = '';
-    this.selectedObjectFile = null;
+    this.selectedObjectFiles = [];
     this.selectedObjectKeys.clear();
     this.objectsPage = 1;
     this.loadObjects();
@@ -383,7 +383,7 @@ export class S3Query implements OnInit {
     this.objects = [];
     this.objectPrefix = '';
     this.objectKey = '';
-    this.selectedObjectFile = null;
+    this.selectedObjectFiles = [];
     this.selectedObjectKeys.clear();
     this.closeObjectContextMenu();
     this.closeRenameDialog();
@@ -431,31 +431,36 @@ export class S3Query implements OnInit {
       });
   }
 
-  handleObjectFileSelected(file: File | null): void {
-    this.selectedObjectFile = file;
+  handleObjectFilesSelected(files: File[]): void {
+    this.selectedObjectFiles = files;
 
-    if (file && !this.objectKey.trim()) {
-      this.objectKey = `${this.objectPrefix || ''}${file.name}`;
+    if (files.length === 1 && !this.objectKey.trim()) {
+      this.objectKey = `${this.objectPrefix || ''}${files[0].name}`;
     }
   }
 
   uploadObject(): void {
-    if (!this.selectedCredential || !this.selectedBucket || !this.selectedObjectFile || !this.objectKey.trim()) {
+    if (!this.selectedCredential || !this.selectedBucket || this.selectedObjectFiles.length === 0) {
       return;
     }
 
     this.objectActionLoading = true;
 
-    this.s3Service
-      .uploadObject(
-        this.selectedBucket.name,
-        {
-          credentialId: this.selectedCredential.id,
-          region: this.resolveBucketRegion(this.selectedBucket),
-        },
-        this.objectKey,
-        this.selectedObjectFile,
-      )
+    const selectedBucket = this.selectedBucket;
+    const query = {
+      credentialId: this.selectedCredential.id,
+      region: this.resolveBucketRegion(selectedBucket),
+    };
+    const uploads = this.selectedObjectFiles.map((file) =>
+      this.s3Service.uploadObject(
+        selectedBucket.name,
+        query,
+        this.buildUploadObjectKey(file),
+        file,
+      ),
+    );
+
+    forkJoin(uploads)
       .pipe(
         finalize(() => {
           this.objectActionLoading = false;
@@ -468,7 +473,7 @@ export class S3Query implements OnInit {
             this.t.toast.objectUploadSuccessDetail,
           );
           this.objectKey = '';
-          this.selectedObjectFile = null;
+          this.selectedObjectFiles = [];
           this.loadObjects();
         },
         error: (error) => {
@@ -829,6 +834,22 @@ export class S3Query implements OnInit {
 
   private ensureValidObjectsPage(): void {
     this.objectsPage = Math.min(Math.max(this.objectsPage, 1), this.objectsPageCount);
+  }
+
+  private buildUploadObjectKey(file: File): string {
+    const requestedKey = this.objectKey.trim();
+
+    if (this.selectedObjectFiles.length === 1) {
+      return requestedKey || `${this.objectPrefix || ''}${file.name}`;
+    }
+
+    const prefix = requestedKey || this.objectPrefix;
+
+    if (!prefix) {
+      return file.name;
+    }
+
+    return `${prefix.endsWith('/') ? prefix : `${prefix}/`}${file.name}`;
   }
 
   private downloadObjects(keys: string[]): void {

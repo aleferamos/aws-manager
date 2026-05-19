@@ -256,8 +256,10 @@
           [placeholder]="t.objects.chooseFile"
           [chooseLabel]="t.objects.browseFile"
           [helperText]="t.objects.fileHelper"
-          [file]="selectedObjectFile"
-          (fileChange)="handleObjectFileSelected($event)"
+          [files]="selectedObjectFiles"
+          [multiple]="true"
+          [multipleSelectedLabel]="t.objects.filesSelected"
+          (filesChange)="handleObjectFilesSelected($event)"
         />
 
         <app-button

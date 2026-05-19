@@ -42,6 +42,7 @@ export interface S3QueryTranslation {
     chooseFile: string;
     browseFile: string;
     fileHelper: string;
+    filesSelected: string;
     selectedCount: string;
     selectAll: string;
     downloadSelected: string;
@@ -178,9 +179,10 @@ export const s3QueryTranslations: Record<AppLanguage, S3QueryTranslation> = {
       objectKey: 'Object key',
       objectKeyPlaceholder: 'folder/file.txt',
       file: 'File',
-      chooseFile: 'Choose file',
+      chooseFile: 'Choose files',
       browseFile: 'Browse',
-      fileHelper: 'Select the file that will be uploaded to S3.',
+      fileHelper: 'Select one or more files. With multiple files, the object key is used as the destination folder.',
+      filesSelected: '{count} files selected',
       selectedCount: '{count} selected',
       selectAll: 'Select all',
       downloadSelected: 'Download selected',
@@ -321,9 +323,10 @@ export const s3QueryTranslations: Record<AppLanguage, S3QueryTranslation> = {
       objectKey: 'Chave do objeto',
       objectKeyPlaceholder: 'pasta/arquivo.txt',
       file: 'Arquivo',
-      chooseFile: 'Escolher arquivo',
+      chooseFile: 'Escolher arquivos',
       browseFile: 'Procurar',
-      fileHelper: 'Selecione o arquivo que sera enviado para o S3.',
+      fileHelper: 'Selecione um ou mais arquivos. Com varios arquivos, a chave do objeto sera usada como pasta de destino.',
+      filesSelected: '{count} arquivos selecionados',
       selectedCount: '{count} selecionados',
       selectAll: 'Selecionar todos',
       downloadSelected: 'Baixar selecionados',

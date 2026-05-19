@@ -30,21 +30,39 @@ export class FileInput implements OnChanges {
   @Input() fullWidth = true;
   @Input() size: FileInputSize = 'md';
   @Input() file: File | null = null;
+  @Input() files: File[] = [];
+  @Input() multiple = false;
+  @Input() multipleSelectedLabel = '{count} files selected';
   @Input() id = `file-input-${Math.random().toString(36).slice(2, 9)}`;
   @Input() ariaLabel?: string;
 
   @Output() fileChange = new EventEmitter<File | null>();
+  @Output() filesChange = new EventEmitter<File[]>();
 
   @ViewChild('nativeInput') private nativeInput?: ElementRef<HTMLInputElement>;
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['file'] && !this.file && this.nativeInput?.nativeElement) {
+    const hasFile = this.multiple ? this.files.length > 0 : !!this.file;
+
+    if ((changes['file'] || changes['files']) && !hasFile && this.nativeInput?.nativeElement) {
       this.nativeInput.nativeElement.value = '';
     }
   }
 
   get fileName(): string {
+    if (this.multiple && this.files.length > 1) {
+      return this.multipleSelectedLabel.replace('{count}', String(this.files.length));
+    }
+
+    if (this.multiple && this.files.length === 1) {
+      return this.files[0].name;
+    }
+
     return this.file?.name || this.placeholder;
+  }
+
+  get hasFile(): boolean {
+    return this.multiple ? this.files.length > 0 : !!this.file;
   }
 
   get classes(): string[] {
@@ -53,7 +71,7 @@ export class FileInput implements OnChanges {
       `file-input-${this.size}`,
       this.fullWidth ? 'file-input-full' : '',
       this.disabled ? 'file-input-disabled' : '',
-      this.file ? 'file-input-has-file' : '',
+      this.hasFile ? 'file-input-has-file' : '',
     ].filter(Boolean);
   }
 
@@ -67,6 +85,9 @@ export class FileInput implements OnChanges {
 
   handleFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.fileChange.emit(input.files?.[0] ?? null);
+    const files = Array.from(input.files ?? []);
+
+    this.filesChange.emit(files);
+    this.fileChange.emit(files[0] ?? null);
   }
 }
