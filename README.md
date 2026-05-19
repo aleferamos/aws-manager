@@ -64,42 +64,8 @@ docker run -d \
   alefepdias/aws-manager:latest
 ```
 
-Para atualizar a aplicacao mantendo os dados, mantenha o `.env` no diretorio onde o comando sera executado:
-
-```bash
-docker pull alefepdias/aws-manager:latest
-
-docker rm -f aws-manager
-
-docker run -d \
-  --name aws-manager \
-  -p 4501:80 \
-  -v aws_manager_data:/var/lib/postgresql/data \
-  --env-file .env \
-  alefepdias/aws-manager:latest
-```
-
 Ao subir uma versao nova usando o mesmo volume, a imagem aplica automaticamente as migracoes em `Docker/postgres/migrations` que ainda nao foram registradas na tabela `schema_migrations`.
 Para cada release com mudanca de banco, crie um novo arquivo sequencial, por exemplo `002_1_2_0.sql`.
-
-## Aviso de atualizacao
-
-A aplicacao compara a versao local do Web com o manifesto publico:
-
-```text
-https://awsmanager.cloud/version.json
-```
-
-Formato esperado:
-
-```json
-{
-  "version": "1.1.0"
-}
-```
-
-Quando publicar uma nova imagem, atualize esse arquivo com a versao mais recente.
-O dominio precisa permitir leitura do JSON pelo navegador das instalacoes self-hosted.
 
 ## E-mail
 
