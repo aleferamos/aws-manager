@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Optional, Self } from '@angular/core';
+import { Component, Input, Optional, Self, inject } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
+import { AppLanguage } from '../../config/languages.config';
+import { LanguageService } from '../../services/language.service';
 
 export type InputSize = 'sm' | 'md' | 'lg';
 export type InputIconPosition = 'left' | 'right';
@@ -16,6 +18,32 @@ export type InputMask =
   | 'currency'
   | string;
 
+const inputTranslations: Record<AppLanguage, {
+  required: string;
+  email: string;
+  minLength: string;
+  maxLength: string;
+  passwordMismatch: string;
+  invalid: string;
+}> = {
+  'en-US': {
+    required: 'Required field.',
+    email: 'Enter a valid email.',
+    minLength: 'Minimum of {value} characters.',
+    maxLength: 'Maximum of {value} characters.',
+    passwordMismatch: 'Passwords do not match.',
+    invalid: 'Invalid field.',
+  },
+  'pt-BR': {
+    required: 'Campo obrigatorio.',
+    email: 'Informe um email valido.',
+    minLength: 'Minimo de {value} caracteres.',
+    maxLength: 'Maximo de {value} caracteres.',
+    passwordMismatch: 'As senhas nao coincidem.',
+    invalid: 'Campo invalido.',
+  },
+};
+
 @Component({
   selector: 'app-input',
   standalone: true,
@@ -24,6 +52,8 @@ export type InputMask =
   styleUrl: './input.scss',
 })
 export class AppInput implements ControlValueAccessor {
+  private languageService = inject(LanguageService);
+
   @Input() label?: string;
   @Input() placeholder = '';
   @Input() type: 'text' | 'password' | 'email' | 'number' | 'search' | 'tel' = 'text';
@@ -75,26 +105,30 @@ export class AppInput implements ControlValueAccessor {
     }
 
     if (errors['required']) {
-      return 'required field.';
+      return this.t.required;
     }
 
     if (errors['email']) {
-      return 'mandatory email.';
+      return this.t.email;
     }
 
     if (errors['minlength']) {
-      return `Minimum of ${errors['minlength'].requiredLength} characters.`;
+      return this.t.minLength.replace('{value}', String(errors['minlength'].requiredLength));
     }
 
     if (errors['maxlength']) {
-      return `Maximum of ${errors['maxlength'].requiredLength} characters.`;
+      return this.t.maxLength.replace('{value}', String(errors['maxlength'].requiredLength));
     }
 
     if (errors['passwordMismatch']) {
-      return 'Passwords do not match.';
+      return this.t.passwordMismatch;
     }
 
-    return 'Invalid field.';
+    return this.t.invalid;
+  }
+
+  get t() {
+    return inputTranslations[this.languageService.currentLanguage];
   }
 
   get classes(): string[] {

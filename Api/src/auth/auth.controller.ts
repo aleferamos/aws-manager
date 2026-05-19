@@ -11,10 +11,14 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from '../user/dto/login.dto';
 import type { Response, Request } from 'express';
+import { I18nService } from '../shared/i18n/i18n.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly i18n: I18nService,
+  ) {}
 
   @Post('login')
   @HttpCode(200)
@@ -57,7 +61,10 @@ export class AuthController {
     const token = request.cookies?.access_token;
 
     if (!token) {
-      throw new UnauthorizedException('Usuário não autenticado.');
+      throw new UnauthorizedException({
+        code: 'UNAUTHENTICATED',
+        message: this.i18n.translate('auth.unauthenticated'),
+      });
     }
 
     return this.authService.me(token);

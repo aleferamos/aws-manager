@@ -26,38 +26,38 @@ export class Badge {
   @Input() label?: string;
 
   /**
-   * Nome do ícone do Material Symbols.
-   * Exemplos: 'person', 'check', 'warning', 'error', 'cloud'
+   * Material Symbols icon name.
+   * Examples: 'person', 'check', 'warning', 'error', 'cloud'
    */
   @Input() icon?: string;
 
   /**
-   * Posição do ícone.
+   * Icon position.
    */
   @Input() iconPos: BadgeIconPosition = 'left';
 
   /**
-   * Variação visual.
+   * Visual variation.
    */
   @Input() severity: BadgeSeverity = 'brand';
 
   /**
-   * Tamanho do badge.
+   * Badge size.
    */
   @Input() size: BadgeSize = 'md';
 
   /**
-   * Badge com borda.
+   * Badge with border.
    */
   @Input() outlined = false;
 
   /**
-   * Badge com formato circular/pill.
+   * Circular/pill badge shape.
    */
   @Input() rounded = true;
 
   /**
-   * Para quando quiser usar apenas ícone.
+   * For icon-only usage.
    */
   @Input() ariaLabel?: string;
 

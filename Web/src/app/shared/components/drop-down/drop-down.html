@@ -67,7 +67,37 @@
         role="listbox"
         [style.--dropdown-panel-max-height.px]="panelMaxHeight"
       >
-        @for (option of options; track option.value; let i = $index) {
+        @if (searchable) {
+          <div class="dropdown-search" (click)="handleSearchClick($event)">
+            <span class="material-symbols-rounded dropdown-search-icon" aria-hidden="true">
+              search
+            </span>
+
+            <input
+              type="search"
+              class="dropdown-search-input"
+              [(ngModel)]="searchTerm"
+              [ngModelOptions]="{ standalone: true }"
+              [placeholder]="searchPlaceholder"
+              autocomplete="off"
+              spellcheck="false"
+              (click)="handleSearchClick($event)"
+            />
+
+            @if (searchTerm) {
+              <button
+                type="button"
+                class="dropdown-search-clear"
+                [attr.aria-label]="t.clearSearch"
+                (click)="searchTerm = ''; handleSearchClick($event)"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">close</span>
+              </button>
+            }
+          </div>
+        }
+
+        @for (option of filteredOptions; track option.value; let i = $index) {
           <button
             type="button"
             class="dropdown-option"
@@ -111,6 +141,10 @@
               </span>
             }
           </button>
+        } @empty {
+          <div class="dropdown-empty">
+            {{ emptySearchLabel }}
+          </div>
         }
       </div>
     }

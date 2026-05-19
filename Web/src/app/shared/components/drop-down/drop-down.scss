@@ -247,6 +247,73 @@
   will-change: opacity, transform;
 }
 
+.dropdown-search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: 4px;
+  padding: 7px 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
+.dropdown-search-icon {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  font-size: 18px;
+}
+
+.dropdown-search-input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.dropdown-search-clear {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+
+  span {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: var(--surface-muted);
+    color: var(--text-primary);
+  }
+}
+
+.dropdown-empty {
+  padding: 12px 10px;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
 .dropdown-open-up {
   .dropdown-panel {
     top: auto;

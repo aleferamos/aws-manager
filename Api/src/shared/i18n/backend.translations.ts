@@ -25,6 +25,15 @@ export const backendTranslations = {
       notFound: 'User was not found.',
     },
 
+    email: {
+      configurationMissing:
+        'Email configuration is missing. Configure the SMTP variables in the .env file.',
+      sendFailed: 'Could not send the email.',
+      toMissing: 'Email recipient was not provided.',
+      subjectMissing: 'Email subject was not provided.',
+      bodyMissing: 'Email content was not provided.',
+    },
+
     credential: {
       notFound: 'Credential was not found.',
       inUse: 'Credential is being used and cannot be deleted.',
@@ -168,6 +177,15 @@ export const backendTranslations = {
       expiredPasswordRedefinitionCode:
         'O código de definição de senha está expirado.',
       notFound: 'Usuário não encontrado.',
+    },
+
+    email: {
+      configurationMissing:
+        'Falta configuracao de e-mail. Configure as variaveis SMTP no arquivo .env.',
+      sendFailed: 'Nao foi possivel enviar o e-mail.',
+      toMissing: 'Destinatario do e-mail nao informado.',
+      subjectMissing: 'Assunto do e-mail nao informado.',
+      bodyMissing: 'Conteudo do e-mail nao informado.',
     },
 
     credential: {
@@ -329,6 +347,15 @@ export const backendTranslations = {
       notFound: 'Usuario no encontrado.',
     },
 
+    email: {
+      configurationMissing:
+        'Falta configuracion de correo electronico. Configure las variables SMTP en el archivo .env.',
+      sendFailed: 'No fue posible enviar el correo electronico.',
+      toMissing: 'Destinatario del correo electronico no informado.',
+      subjectMissing: 'Asunto del correo electronico no informado.',
+      bodyMissing: 'Contenido del correo electronico no informado.',
+    },
+
     credential: {
       notFound: 'Credencial no encontrada.',
       inUse: 'La credencial está en uso y no se puede eliminar.',
@@ -474,6 +501,11 @@ export type TranslationKey =
   | 'user.invalidPasswordRedefinitionCode'
   | 'user.expiredPasswordRedefinitionCode'
   | 'user.notFound'
+  | 'email.configurationMissing'
+  | 'email.sendFailed'
+  | 'email.toMissing'
+  | 'email.subjectMissing'
+  | 'email.bodyMissing'
   | 'credential.notFound'
   | 'credential.inUse'
   | 'authority.notFound'

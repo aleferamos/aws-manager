@@ -91,7 +91,7 @@
   font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
 }
 
-// Quando tem conteúdo depois do header
+// When there is content after the header
 .card-header + * {
   margin-top: 14px;
 }

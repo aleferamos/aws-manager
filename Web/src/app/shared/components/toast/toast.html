@@ -27,7 +27,7 @@
         <button
           type="button"
           class="toast-close"
-          aria-label="Fechar notificação"
+          [attr.aria-label]="t.close"
           (click)="remove(message.id)"
         >
           <span class="material-symbols-rounded" aria-hidden="true">

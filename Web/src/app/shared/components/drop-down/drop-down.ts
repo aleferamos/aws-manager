@@ -1,6 +1,8 @@
-import { Component, ElementRef, HostListener, Input, Optional, Self } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, Optional, Self, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NgControl } from '@angular/forms';
+import { ControlValueAccessor, FormsModule, NgControl } from '@angular/forms';
+import { AppLanguage } from '../../config/languages.config';
+import { LanguageService } from '../../services/language.service';
 
 export type DropDownSize = 'sm' | 'md' | 'lg';
 
@@ -13,14 +15,33 @@ export interface DropDownOption {
   disabled?: boolean;
 }
 
+const dropdownTranslations: Record<AppLanguage, {
+  required: string;
+  invalid: string;
+  clearSearch: string;
+}> = {
+  'en-US': {
+    required: 'Required field.',
+    invalid: 'Invalid field.',
+    clearSearch: 'Clear search',
+  },
+  'pt-BR': {
+    required: 'Campo obrigatorio.',
+    invalid: 'Campo invalido.',
+    clearSearch: 'Limpar busca',
+  },
+};
+
 @Component({
   selector: 'app-drop-down',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './drop-down.html',
   styleUrl: './drop-down.scss',
 })
 export class DropDown implements ControlValueAccessor {
+  private languageService = inject(LanguageService);
+
   @Input() options: DropDownOption[] = [];
 
   @Input() label?: string;
@@ -30,6 +51,9 @@ export class DropDown implements ControlValueAccessor {
   @Input() size: DropDownSize = 'md';
   @Input() fullWidth = true;
   @Input() panelMaxHeight = 340;
+  @Input() searchable = false;
+  @Input() searchPlaceholder = 'Search';
+  @Input() emptySearchLabel = 'No options found.';
 
   @Input() readonly = false;
   @Input() disabled = false;
@@ -41,16 +65,17 @@ export class DropDown implements ControlValueAccessor {
   @Input() ariaLabel?: string;
 
   /**
-   * Permite limpar o valor selecionado.
+   * Allows clearing the selected value.
    */
   @Input() clearable = false;
 
   /**
-   * Controla se a lista mostra descrição abaixo do label.
+   * Controls whether the list shows a description below the label.
    */
   @Input() showDescription = true;
 
   value: string | number | boolean | null = null;
+  searchTerm = '';
   isOpen = false;
   openUp = false;
   touched = false;
@@ -69,6 +94,26 @@ export class DropDown implements ControlValueAccessor {
 
   get selectedOption(): DropDownOption | undefined {
     return this.options.find((option) => option.value === this.value);
+  }
+
+  get filteredOptions(): DropDownOption[] {
+    const normalizedSearch = this.normalizeSearch(this.searchTerm);
+
+    if (!normalizedSearch) {
+      return this.options;
+    }
+
+    return this.options.filter((option) =>
+      [
+        option.label,
+        option.description,
+        option.value,
+        option.icon,
+        option.flag,
+      ]
+        .map((value) => this.normalizeSearch(value))
+        .some((value) => value.includes(normalizedSearch)),
+    );
   }
 
   get hasValue(): boolean {
@@ -91,10 +136,14 @@ export class DropDown implements ControlValueAccessor {
     }
 
     if (errors['required']) {
-      return 'Campo obrigatório.';
+      return this.t.required;
     }
 
-    return 'Campo inválido.';
+    return this.t.invalid;
+  }
+
+  get t() {
+    return dropdownTranslations[this.languageService.currentLanguage];
   }
 
   get classes(): string[] {
@@ -141,6 +190,7 @@ export class DropDown implements ControlValueAccessor {
   close(): void {
     this.isOpen = false;
     this.openUp = false;
+    this.searchTerm = '';
   }
 
   selectOption(option: DropDownOption): void {
@@ -170,6 +220,10 @@ export class DropDown implements ControlValueAccessor {
     return option.value === this.value;
   }
 
+  handleSearchClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
   private markAsTouched(): void {
     if (this.touched) {
       return;
@@ -187,7 +241,7 @@ export class DropDown implements ControlValueAccessor {
     const boundaryTop = boundaryRect?.top ?? 0;
     const estimatedPanelHeight = Math.min(
       this.panelMaxHeight,
-      Math.max(44, this.options.length * 42 + 10),
+      Math.max(44, this.filteredOptions.length * 42 + (this.searchable ? 62 : 10)),
     );
     const spaceBelow = boundaryBottom - rect.bottom;
     const spaceAbove = rect.top - boundaryTop;
@@ -207,5 +261,13 @@ export class DropDown implements ControlValueAccessor {
   @HostListener('keydown.escape')
   handleEscape(): void {
     this.close();
+  }
+
+  private normalizeSearch(value: unknown): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 }

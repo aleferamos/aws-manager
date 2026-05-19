@@ -1,6 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, Input } from '@angular/core';
 import { ToastMessage, ToastPosition, ToastService } from '../../services/toast.service';
+import { AppLanguage } from '../../config/languages.config';
+import { LanguageService } from '../../services/language.service';
+
+const toastTranslations: Record<AppLanguage, {
+  close: string;
+}> = {
+  'en-US': {
+    close: 'Close notification',
+  },
+  'pt-BR': {
+    close: 'Fechar notificacao',
+  },
+};
 
 @Component({
   selector: 'app-toast',
@@ -11,10 +24,15 @@ import { ToastMessage, ToastPosition, ToastService } from '../../services/toast.
 })
 export class Toast {
   private readonly toastService = inject(ToastService);
+  private readonly languageService = inject(LanguageService);
 
   @Input() position: ToastPosition = 'top-right';
 
   readonly messages$ = this.toastService.messages$;
+
+  get t() {
+    return toastTranslations[this.languageService.currentLanguage];
+  }
 
   getContainerClasses(): string[] {
     return ['toast-container', `toast-${this.position}`];

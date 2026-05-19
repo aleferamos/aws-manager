@@ -34,20 +34,20 @@ export class Button {
   @Input() fullWidth = false;
 
   /**
-   * Variante visual parecida com PrimeNG:
-   * - false: botão preenchido
-   * - true: botão com borda e fundo transparente
+   * PrimeNG-like visual variant:
+   * - false: filled button
+   * - true: outlined button with transparent background
    */
   @Input() outlined = false;
 
   /**
-   * Variante visual parecida com PrimeNG:
-   * - true: botão sem borda e sem fundo
+   * PrimeNG-like visual variant:
+   * - true: text button without border or background
    */
   @Input() text = false;
 
   /**
-   * Botão mais arredondado.
+   * More rounded button.
    */
   @Input() rounded = false;
 

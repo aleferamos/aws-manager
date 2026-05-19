@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Socket, connect } from 'node:net';
 import { TLSSocket, connect as tlsConnect } from 'node:tls';
+import { I18nService } from '../i18n/i18n.service';
 
 interface SendEmailParams {
   to: string;
@@ -25,28 +26,20 @@ type PendingResponse = {
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
 
+  constructor(private readonly i18n: I18nService) {}
+
   private readonly host =
     process.env.EMAIL_HOST?.trim() || 'smtp-relay.brevo.com';
   private readonly port = Number(process.env.EMAIL_PORT ?? 587);
 
-  /**
-   * Usuario SMTP da Brevo, configurado por variavel de ambiente.
-   */
   private get user(): string {
     return this.getRequiredEnv('EMAIL_USER');
   }
 
-  /**
-   * Chave SMTP gerada na Brevo, configurada por variavel de ambiente.
-   */
   private get password(): string {
     return this.getRequiredEnv('EMAIL_APP_PASSWORD');
   }
 
-  /**
-   * Remetente visivel do e-mail.
-   * Precisa estar cadastrado/verificado na Brevo.
-   */
   private readonly fromName =
     process.env.EMAIL_FROM_NAME?.trim() || 'AWS Manager';
 
@@ -58,6 +51,7 @@ export class EmailService {
 
   async send(params: SendEmailParams): Promise<void> {
     this.validateEmailParams(params);
+    this.validateEmailConfiguration();
 
     const client = new SmtpClient(this.host, this.port, this.timeoutMs);
 
@@ -66,25 +60,15 @@ export class EmailService {
 
       await client.command(`EHLO ${this.host}`, 250);
 
-      /**
-       * Porta 587 usa STARTTLS.
-       */
       await client.command('STARTTLS', 220);
       await client.upgradeToTls();
 
       await client.command(`EHLO ${this.host}`, 250);
 
-      /**
-       * Login SMTP.
-       */
       await client.command('AUTH LOGIN', 334);
       await client.command(this.encodeBase64(this.user), 334);
       await client.command(this.encodeBase64(this.password), 235);
 
-      /**
-       * Aqui deve ir o remetente verificado na Brevo,
-       * nao necessariamente o usuario SMTP.
-       */
       await client.command(`MAIL FROM:<${this.fromEmail}>`, 250);
 
       await client.command(`RCPT TO:<${params.to}>`, [250, 251]);
@@ -107,7 +91,7 @@ export class EmailService {
 
       throw new InternalServerErrorException({
         code: 'EMAIL_SEND_FAILED',
-        message: 'Nao foi possivel enviar o e-mail.',
+        message: this.i18n.translate('email.sendFailed'),
         detail:
           process.env.NODE_ENV === 'production' ? undefined : errorMessage,
       });
@@ -152,21 +136,21 @@ export class EmailService {
     if (!params.to?.trim()) {
       throw new InternalServerErrorException({
         code: 'EMAIL_TO_MISSING',
-        message: 'Destinatario do e-mail nao informado.',
+        message: this.i18n.translate('email.toMissing'),
       });
     }
 
     if (!params.subject?.trim()) {
       throw new InternalServerErrorException({
         code: 'EMAIL_SUBJECT_MISSING',
-        message: 'Assunto do e-mail nao informado.',
+        message: this.i18n.translate('email.subjectMissing'),
       });
     }
 
     if (!params.html?.trim() && !params.text?.trim()) {
       throw new InternalServerErrorException({
         code: 'EMAIL_BODY_MISSING',
-        message: 'Conteudo do e-mail nao informado.',
+        message: this.i18n.translate('email.bodyMissing'),
       });
     }
   }
@@ -177,11 +161,17 @@ export class EmailService {
     if (!value) {
       throw new InternalServerErrorException({
         code: 'EMAIL_CONFIGURATION_MISSING',
-        message: `Variavel de ambiente ${name} nao definida.`,
+        message: this.i18n.translate('email.configurationMissing'),
       });
     }
 
     return value;
+  }
+
+  private validateEmailConfiguration(): void {
+    this.user;
+    this.password;
+    this.fromEmail;
   }
 
   private encodeBase64(value: string): string {

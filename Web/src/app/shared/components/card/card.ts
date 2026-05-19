@@ -25,37 +25,37 @@ export class AppCard {
   @Input() icon?: string;
 
   /**
-   * Define uma faixa/ícone com cor semântica.
+   * Defines a stripe/icon with semantic color.
    */
   @Input() severity: CardSeverity = 'default';
 
   /**
-   * Padding interno do card.
+   * Internal card padding.
    */
   @Input() padding: CardPadding = 'md';
 
   /**
-   * Card com sombra.
+   * Card with shadow.
    */
   @Input() elevated = false;
 
   /**
-   * Card com borda mais visível.
+   * Card with a more visible border.
    */
   @Input() outlined = true;
 
   /**
-   * Efeito hover.
+   * Hover effect.
    */
   @Input() hoverable = false;
 
   /**
-   * Card compacto, bom para dashboards.
+   * Compact card, useful for dashboards.
    */
   @Input() compact = false;
 
   /**
-   * Mostra uma barrinha colorida no topo.
+   * Shows a colored bar at the top.
    */
   @Input() accent = false;
 
