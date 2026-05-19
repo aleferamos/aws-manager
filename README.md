@@ -28,9 +28,9 @@ Depois acesse:
 
 O banco e inicializado automaticamente na primeira subida usando o script `docker/postgres/init.sql`.
 
-## Versao oficial mais recente
+## Versão oficial mais recente
 
-A versao oficial mais recente esta disponivel em uma imagem Docker all-in-one, com Web, API e Postgres no mesmo container.
+A versão oficial mais recente está disponível em uma imagem Docker all-in-one, com Web, API e Postgres no mesmo container.
 Use um volume para manter os dados do banco entre atualizacoes e um arquivo `.env` para configurar o envio de e-mail.
 O arquivo `.env` deve existir no diretorio onde voce executar o comando `docker run`.
 
