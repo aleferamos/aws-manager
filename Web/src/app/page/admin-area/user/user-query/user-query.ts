@@ -812,6 +812,8 @@ export class UserQuery implements OnInit {
           continue;
         }
 
+        this.replaceDraftUserCredentialId(currentCredential.credentialId, userCredentialId);
+
         for (const authority of currentCredential.authorities) {
           await firstValueFrom(
             this.accessService.addUserCredentialAuthority(userCredentialId, authority.id),
@@ -870,6 +872,21 @@ export class UserQuery implements OnInit {
 
   private createDraftUserCredentialId(credentialId: string): string {
     return `draft:${credentialId}`;
+  }
+
+  private replaceDraftUserCredentialId(credentialId: string, userCredentialId: string): void {
+    if (!this.userAccess) {
+      return;
+    }
+
+    this.userAccess = {
+      ...this.userAccess,
+      credentials: this.userAccess.credentials.map((credential) =>
+        credential.credentialId === credentialId
+          ? { ...credential, userCredentialId }
+          : credential,
+      ),
+    };
   }
 
   private cloneUserAccess(access: AccessUserResponse): AccessUserResponse {
