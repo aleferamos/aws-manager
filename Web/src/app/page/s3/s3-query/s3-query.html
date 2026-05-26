@@ -65,6 +65,19 @@
         <span>{{ selectedRegion }}</span>
       </div>
 
+      <div class="s3-table-search">
+        <app-input
+          name="bucketFilter"
+          type="search"
+          icon="search"
+          [ngModel]="bucketFilter"
+          [placeholder]="t.search.placeholder"
+          [ariaLabel]="t.search.ariaLabel"
+          autocomplete="off"
+          (ngModelChange)="handleBucketFilterChange($event)"
+        />
+      </div>
+
       <app-table
         rowKey="name"
         actionsMode="menu"
@@ -201,7 +214,22 @@
     [closeOnBackdrop]="!objectsLoading && !objectActionLoading"
     (closed)="closeObjectsDialog()"
   >
-    <div class="s3-objects">
+    <div
+      class="s3-objects"
+      [class.s3-objects-drop-active]="objectsDropActive"
+      (dragenter)="handleObjectsDragEnter($event)"
+      (dragover)="handleObjectsDragOver($event)"
+      (dragleave)="handleObjectsDragLeave($event)"
+      (drop)="handleObjectsDrop($event)"
+    >
+      @if (objectsDropActive) {
+        <div class="s3-objects-drop-overlay" aria-hidden="true">
+          <span class="material-symbols-rounded">drive_folder_upload</span>
+          <strong>{{ t.objects.dropTitle }}</strong>
+          <small>{{ t.objects.dropDescription }}</small>
+        </div>
+      }
+
       <div class="s3-objects-toolbar">
         <app-input
           name="objectPrefix"
@@ -258,6 +286,7 @@
           [helperText]="t.objects.fileHelper"
           [files]="selectedObjectFiles"
           [multiple]="true"
+          [allowDirectory]="true"
           [multipleSelectedLabel]="t.objects.filesSelected"
           (filesChange)="handleObjectFilesSelected($event)"
         />

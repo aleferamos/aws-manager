@@ -96,6 +96,11 @@ export class Sidebar implements OnInit {
       route: '/s3',
     },
     {
+      key: 'cloudFront',
+      icon: 'cloud',
+      route: '/cloudfront',
+    },
+    {
       key: 'adminArea',
       icon: 'admin_panel_settings',
       access: ACCESS_RULES.adminArea,
@@ -123,7 +128,7 @@ export class Sidebar implements OnInit {
     startWith(this.accessControl.filterItemsWithoutUser(this.menuItems)),
   );
 
-  private readonly openGroups = new Set(['ec2', 'adminArea']);
+  private readonly openGroups = new Set<string>();
 
   private resizing = false;
   private currentWidth = 272;

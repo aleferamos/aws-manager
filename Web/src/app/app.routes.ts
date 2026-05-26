@@ -10,6 +10,7 @@ import { AuthorityQuery } from './page/admin-area/authority/authority-query/auth
 import { Ec2Query } from './page/ec2/ec2-query/ec2-query';
 import { SecurityGroupsQuery } from './page/security-groups/security-groups-query/security-groups-query';
 import { S3Query } from './page/s3/s3-query/s3-query';
+import { CloudFrontQuery } from './page/cloud-front/cloud-front-query/cloud-front-query';
 import { Configuration } from './page/configuration/configuration';
 
 import { AppLayout } from './layout/app-layout/app-layout';
@@ -54,6 +55,10 @@ export const routes: Routes = [
       {
         path: 's3',
         component: S3Query,
+      },
+      {
+        path: 'cloudfront',
+        component: CloudFrontQuery,
       },
       {
         path: 'configuration',

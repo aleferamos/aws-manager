@@ -15,6 +15,10 @@ export interface S3QueryTranslation {
     total: string;
     selectedRegion: string;
   };
+  search: {
+    placeholder: string;
+    ariaLabel: string;
+  };
   table: {
     name: string;
     region: string;
@@ -43,6 +47,8 @@ export interface S3QueryTranslation {
     browseFile: string;
     fileHelper: string;
     filesSelected: string;
+    dropTitle: string;
+    dropDescription: string;
     selectedCount: string;
     selectAll: string;
     downloadSelected: string;
@@ -155,6 +161,10 @@ export const s3QueryTranslations: Record<AppLanguage, S3QueryTranslation> = {
       total: 'Buckets',
       selectedRegion: 'Selected region',
     },
+    search: {
+      placeholder: 'Search buckets by any field',
+      ariaLabel: 'Search S3 buckets',
+    },
     table: {
       name: 'Bucket',
       region: 'Region',
@@ -179,10 +189,12 @@ export const s3QueryTranslations: Record<AppLanguage, S3QueryTranslation> = {
       objectKey: 'Object key',
       objectKeyPlaceholder: 'folder/file.txt',
       file: 'File',
-      chooseFile: 'Choose files',
-      browseFile: 'Browse',
-      fileHelper: 'Select one or more files. With multiple files, the object key is used as the destination folder.',
+      chooseFile: 'Drop files here',
+      browseFile: 'Select files',
+      fileHelper: 'Drag files or folders into this modal. With multiple items, the object key is used as the destination folder.',
       filesSelected: '{count} files selected',
+      dropTitle: 'Drop files or folders',
+      dropDescription: 'The folder structure will be preserved in S3.',
       selectedCount: '{count} selected',
       selectAll: 'Select all',
       downloadSelected: 'Download selected',
@@ -299,6 +311,10 @@ export const s3QueryTranslations: Record<AppLanguage, S3QueryTranslation> = {
       total: 'Buckets',
       selectedRegion: 'Regiao selecionada',
     },
+    search: {
+      placeholder: 'Buscar buckets por qualquer campo',
+      ariaLabel: 'Buscar buckets S3',
+    },
     table: {
       name: 'Bucket',
       region: 'Regiao',
@@ -323,10 +339,12 @@ export const s3QueryTranslations: Record<AppLanguage, S3QueryTranslation> = {
       objectKey: 'Chave do objeto',
       objectKeyPlaceholder: 'pasta/arquivo.txt',
       file: 'Arquivo',
-      chooseFile: 'Escolher arquivos',
-      browseFile: 'Procurar',
-      fileHelper: 'Selecione um ou mais arquivos. Com varios arquivos, a chave do objeto sera usada como pasta de destino.',
+      chooseFile: 'Solte arquivos aqui',
+      browseFile: 'Selecionar arquivos',
+      fileHelper: 'Arraste arquivos ou pastas para esta modal. Com varios itens, a chave do objeto sera usada como pasta de destino.',
       filesSelected: '{count} arquivos selecionados',
+      dropTitle: 'Solte arquivos ou pastas',
+      dropDescription: 'A estrutura das pastas sera preservada no S3.',
       selectedCount: '{count} selecionados',
       selectAll: 'Selecionar todos',
       downloadSelected: 'Baixar selecionados',

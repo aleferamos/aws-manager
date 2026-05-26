@@ -65,7 +65,10 @@
       <div
         class="dropdown-panel"
         role="listbox"
-        [style.--dropdown-panel-max-height.px]="panelMaxHeight"
+        [style.top.px]="panelTop"
+        [style.left.px]="panelLeft"
+        [style.width.px]="panelWidth"
+        [style.--dropdown-panel-max-height.px]="resolvedPanelMaxHeight"
       >
         @if (searchable) {
           <div class="dropdown-search" (click)="handleSearchClick($event)">

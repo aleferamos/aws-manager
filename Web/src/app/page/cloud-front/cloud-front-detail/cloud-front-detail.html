@@ -1,0 +1,149 @@
+<section class="cloud-front-detail-page">
+  <header class="cloud-front-detail-header">
+    <div class="cloud-front-detail-title-block">
+      <a class="cloud-front-detail-back" routerLink="/cloudfront">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        {{ t.back }}
+      </a>
+      <span class="cloud-front-detail-eyebrow">{{ t.eyebrow }}</span>
+      <h1>{{ title }}</h1>
+      <p>{{ t.subtitle }}</p>
+    </div>
+
+    <div class="cloud-front-detail-actions">
+      <app-button
+        [ariaLabel]="t.reload"
+        icon="refresh"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="detailLoading || invalidationsLoading"
+        [disabled]="!selectedCredential"
+        (pressed)="reload()"
+      />
+
+      <app-button
+        [label]="t.createInvalidation"
+        icon="add"
+        [disabled]="!selectedCredential"
+        (pressed)="openCreateDialog()"
+      />
+    </div>
+  </header>
+
+  @if (!selectedCredential) {
+    <app-card class="cloud-front-detail-empty-card" padding="lg" [outlined]="true">
+      <span class="cloud-front-detail-empty-icon" aria-hidden="true">
+        <span class="material-symbols-rounded">vpn_key_off</span>
+      </span>
+
+      <div>
+        <h2>{{ t.emptyCredential.title }}</h2>
+        <p>{{ t.emptyCredential.description }}</p>
+      </div>
+    </app-card>
+  } @else {
+    <app-card class="cloud-front-detail-card" padding="lg" [outlined]="true">
+      <div class="cloud-front-detail-tabs">
+        <button
+          type="button"
+          [class.cloud-front-detail-tab-active]="activeTab === 'overview'"
+          (click)="setTab('overview')"
+        >
+          {{ t.tabs.overview }}
+        </button>
+
+        <button
+          type="button"
+          [class.cloud-front-detail-tab-active]="activeTab === 'invalidations'"
+          (click)="setTab('invalidations')"
+        >
+          {{ t.tabs.invalidations }}
+        </button>
+      </div>
+
+      @if (activeTab === 'overview') {
+        <dl class="cloud-front-detail-grid">
+          @for (field of overviewFields; track field.label) {
+            <div>
+              <dt>{{ field.label }}</dt>
+              <dd>{{ field.value }}</dd>
+            </div>
+          }
+        </dl>
+      } @else {
+        <app-table
+          rowKey="id"
+          [columns]="invalidationColumns"
+          [data]="invalidationRows"
+          [loading]="invalidationsLoading"
+          [loadingLabel]="t.table.loading"
+          [emptyTitle]="t.table.emptyTitle"
+          [emptyDescription]="t.table.emptyDescription"
+          [paginator]="true"
+          [page]="page"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="pageSizeOptions"
+          [pageSizeLabel]="t.table.rowsPerPage"
+          [paginatorInfoTemplate]="t.table.showing"
+          [firstPageLabel]="t.table.firstPage"
+          [previousPageLabel]="t.table.previousPage"
+          [nextPageLabel]="t.table.nextPage"
+          [lastPageLabel]="t.table.lastPage"
+          (pageChange)="handlePageChange($event)"
+        />
+      }
+    </app-card>
+  }
+
+  <app-dialog
+    [open]="createDialogOpen"
+    [title]="t.form.title"
+    [subtitle]="t.form.subtitle"
+    [closeAriaLabel]="t.close"
+    icon="refresh"
+    size="sm"
+    [closeOnBackdrop]="!createLoading"
+    (closed)="closeCreateDialog()"
+  >
+    <form class="cloud-front-invalidation-form" (ngSubmit)="createInvalidation()">
+      <label class="cloud-front-paths-field">
+        <span>{{ t.form.pathsLabel }}</span>
+        <textarea
+          name="invalidationPaths"
+          [(ngModel)]="invalidationPaths"
+          [placeholder]="t.form.pathsPlaceholder"
+          rows="6"
+        ></textarea>
+        <small>{{ t.form.pathsHelper }}</small>
+      </label>
+
+      <app-input
+        name="callerReference"
+        [(ngModel)]="callerReference"
+        [label]="t.form.callerReferenceLabel"
+        [placeholder]="t.form.callerReferencePlaceholder"
+        icon="tag"
+        autocomplete="off"
+      />
+
+      <div class="cloud-front-dialog-actions">
+        <app-button
+          type="button"
+          [label]="t.form.cancel"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="createLoading"
+          (pressed)="closeCreateDialog()"
+        />
+
+        <app-button
+          type="submit"
+          [label]="t.form.create"
+          icon="check"
+          [loading]="createLoading"
+          [disabled]="createLoading"
+        />
+      </div>
+    </form>
+  </app-dialog>
+</section>

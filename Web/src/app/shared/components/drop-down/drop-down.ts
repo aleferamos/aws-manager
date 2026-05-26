@@ -78,6 +78,10 @@ export class DropDown implements ControlValueAccessor {
   searchTerm = '';
   isOpen = false;
   openUp = false;
+  panelTop = 0;
+  panelLeft = 0;
+  panelWidth = 0;
+  resolvedPanelMaxHeight = this.panelMaxHeight;
   touched = false;
 
   private onChange: (value: string | number | boolean | null) => void = () => {};
@@ -186,7 +190,7 @@ export class DropDown implements ControlValueAccessor {
     }
 
     if (!this.isOpen) {
-      this.updatePanelDirection();
+      this.updatePanelPosition();
     }
 
     this.isOpen = !this.isOpen;
@@ -239,20 +243,30 @@ export class DropDown implements ControlValueAccessor {
     this.onTouched();
   }
 
-  private updatePanelDirection(): void {
-    const rect = this.elementRef.nativeElement.getBoundingClientRect();
-    const boundary = this.elementRef.nativeElement.closest('.dialog-content');
-    const boundaryRect = boundary?.getBoundingClientRect();
-    const boundaryBottom = boundaryRect?.bottom ?? window.innerHeight;
-    const boundaryTop = boundaryRect?.top ?? 0;
+  updatePanelPosition(): void {
+    const trigger = this.elementRef.nativeElement.querySelector('.dropdown-trigger');
+    const rect = trigger?.getBoundingClientRect() ?? this.elementRef.nativeElement.getBoundingClientRect();
+    const gap = 6;
+    const viewportMargin = 8;
     const estimatedPanelHeight = Math.min(
       this.panelMaxHeight,
       Math.max(44, this.filteredOptions.length * 42 + (this.searchable ? 62 : 10)),
     );
-    const spaceBelow = boundaryBottom - rect.bottom;
-    const spaceAbove = rect.top - boundaryTop;
+    const spaceBelow = window.innerHeight - rect.bottom - gap - viewportMargin;
+    const spaceAbove = rect.top - gap - viewportMargin;
 
-    this.openUp = spaceBelow < estimatedPanelHeight + 16 && spaceAbove > spaceBelow;
+    this.openUp = spaceBelow < estimatedPanelHeight && spaceAbove > spaceBelow;
+    this.resolvedPanelMaxHeight = Math.min(
+      this.panelMaxHeight,
+      Math.max(96, this.openUp ? spaceAbove : spaceBelow),
+    );
+    this.panelTop = Math.round(
+      this.openUp
+        ? Math.max(viewportMargin, rect.top - Math.min(estimatedPanelHeight, this.resolvedPanelMaxHeight) - gap)
+        : rect.bottom + gap,
+    );
+    this.panelLeft = Math.round(rect.left);
+    this.panelWidth = Math.round(rect.width);
   }
 
   @HostListener('document:click', ['$event'])
@@ -267,6 +281,13 @@ export class DropDown implements ControlValueAccessor {
   @HostListener('keydown.escape')
   handleEscape(): void {
     this.close();
+  }
+
+  @HostListener('window:resize')
+  handleWindowResize(): void {
+    if (this.isOpen) {
+      this.updatePanelPosition();
+    }
   }
 
   private normalizeSearch(value: unknown): string {

@@ -16,6 +16,7 @@ import { Ec2Module } from './ec2/ec2.module';
 import { SecurityGroupModule } from './security-group/security-group.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { S3Module } from './s3/s3.module';
+import { CloudFrontModule } from './cloud-front/cloud-front.module';
 import { User } from './user/entities/user.entity';
 import { Person } from './user/entities/person.entity';
 import { Credential } from './credential/entities/credential.entity';
@@ -64,6 +65,7 @@ import { AppConfiguration } from './configuration/entities/app-configuration.ent
     Ec2Module,
     SecurityGroupModule,
     S3Module,
+    CloudFrontModule,
     ConfigurationModule,
   ],
   controllers: [AppController],

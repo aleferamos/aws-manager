@@ -73,6 +73,22 @@
   white-space: nowrap;
 }
 
+.table-badge-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+
+.table-cell-loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--color-brand-600);
+  border-radius: 50%;
+  animation: table-spin 0.7s linear infinite;
+}
+
 .table-cell-link {
   display: inline-block;
   max-width: 320px;

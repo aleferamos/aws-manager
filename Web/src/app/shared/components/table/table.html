@@ -52,11 +52,17 @@
                   [style.width]="column.width ?? null"
                 >
                   @if (column.type === 'badge') {
-                    <app-badge
-                      [label]="getCellValue(row, column)"
-                      [severity]="getBadgeSeverity(row, column)"
-                      size="sm"
-                    />
+                    <span class="table-badge-cell">
+                      @if (isBadgeLoading(row, column)) {
+                        <span class="table-cell-loader" aria-hidden="true"></span>
+                      }
+
+                      <app-badge
+                        [label]="getCellValue(row, column)"
+                        [severity]="getBadgeSeverity(row, column)"
+                        size="sm"
+                      />
+                    </span>
                   } @else if (column.type === 'link') {
                     @if (getCellLink(row, column); as cellLink) {
                       <a

@@ -143,6 +143,27 @@ export const backendTranslations = {
         'Directory bucket single Availability Zone acknowledgement is required.',
     },
 
+    cloudFront: {
+      listDistributionsAuthorityNotConfigured:
+        'CloudFront distribution list authority is not configured.',
+      listDistributionsAuthorityRequired:
+        'CloudFront distribution list authority is required.',
+      listInvalidationsAuthorityNotConfigured:
+        'CloudFront invalidation list authority is not configured.',
+      listInvalidationsAuthorityRequired:
+        'CloudFront invalidation list authority is required.',
+      createInvalidationAuthorityNotConfigured:
+        'CloudFront create invalidation authority is not configured.',
+      createInvalidationAuthorityRequired:
+        'CloudFront create invalidation authority is required.',
+      awsConnectionFailed: 'Could not connect to AWS CloudFront.',
+      awsRequestFailed: 'AWS CloudFront request failed with status {status}.',
+      credentialAccessRequired:
+        'Access to this credential is required to use CloudFront.',
+      credentialInactive: 'Credential is inactive.',
+      invalidationPathsRequired: 'At least one invalidation path is required.',
+    },
+
     validation: {
       invalidPayload: 'Invalid request data.',
       required: 'The field {property} is required.',
@@ -313,6 +334,28 @@ export const backendTranslations = {
         'E necessario confirmar que o directory bucket usa uma unica Availability Zone.',
     },
 
+    cloudFront: {
+      listDistributionsAuthorityNotConfigured:
+        'A permissao para listar distribuicoes CloudFront nao esta configurada.',
+      listDistributionsAuthorityRequired:
+        'A permissao para listar distribuicoes CloudFront e obrigatoria.',
+      listInvalidationsAuthorityNotConfigured:
+        'A permissao para listar invalidations CloudFront nao esta configurada.',
+      listInvalidationsAuthorityRequired:
+        'A permissao para listar invalidations CloudFront e obrigatoria.',
+      createInvalidationAuthorityNotConfigured:
+        'A permissao para criar invalidation CloudFront nao esta configurada.',
+      createInvalidationAuthorityRequired:
+        'A permissao para criar invalidation CloudFront e obrigatoria.',
+      awsConnectionFailed: 'Nao foi possivel conectar ao AWS CloudFront.',
+      awsRequestFailed: 'A requisicao AWS CloudFront falhou com status {status}.',
+      credentialAccessRequired:
+        'E necessario acesso a esta credencial para usar CloudFront.',
+      credentialInactive: 'A credencial esta inativa.',
+      invalidationPathsRequired:
+        'Informe pelo menos um path para criar a invalidation.',
+    },
+
     validation: {
       invalidPayload: 'Dados da requisição inválidos.',
       required: 'O campo {property} é obrigatório.',
@@ -480,6 +523,29 @@ export const backendTranslations = {
         'Es necesario confirmar que el directory bucket usa una unica Availability Zone.',
     },
 
+    cloudFront: {
+      listDistributionsAuthorityNotConfigured:
+        'El permiso para listar distribuciones CloudFront no esta configurado.',
+      listDistributionsAuthorityRequired:
+        'Se requiere permiso para listar distribuciones CloudFront.',
+      listInvalidationsAuthorityNotConfigured:
+        'El permiso para listar invalidations CloudFront no esta configurado.',
+      listInvalidationsAuthorityRequired:
+        'Se requiere permiso para listar invalidations CloudFront.',
+      createInvalidationAuthorityNotConfigured:
+        'El permiso para crear invalidation CloudFront no esta configurado.',
+      createInvalidationAuthorityRequired:
+        'Se requiere permiso para crear invalidation CloudFront.',
+      awsConnectionFailed: 'No fue posible conectar con AWS CloudFront.',
+      awsRequestFailed:
+        'La solicitud de AWS CloudFront fallo con estado {status}.',
+      credentialAccessRequired:
+        'Se requiere acceso a esta credencial para usar CloudFront.',
+      credentialInactive: 'La credencial esta inactiva.',
+      invalidationPathsRequired:
+        'Informe al menos un path para crear la invalidation.',
+    },
+
     validation: {
       invalidPayload: 'Datos de la solicitud inválidos.',
       required: 'El campo {property} es obligatorio.',
@@ -582,6 +648,17 @@ export type TranslationKey =
   | 's3.noObjectsToDownload'
   | 's3.invalidAvailabilityZoneId'
   | 's3.directoryBucketAcknowledgementRequired'
+  | 'cloudFront.listDistributionsAuthorityNotConfigured'
+  | 'cloudFront.listDistributionsAuthorityRequired'
+  | 'cloudFront.listInvalidationsAuthorityNotConfigured'
+  | 'cloudFront.listInvalidationsAuthorityRequired'
+  | 'cloudFront.createInvalidationAuthorityNotConfigured'
+  | 'cloudFront.createInvalidationAuthorityRequired'
+  | 'cloudFront.awsConnectionFailed'
+  | 'cloudFront.awsRequestFailed'
+  | 'cloudFront.credentialAccessRequired'
+  | 'cloudFront.credentialInactive'
+  | 'cloudFront.invalidationPathsRequired'
   | 'validation.invalidPayload'
   | 'validation.required'
   | 'validation.string'

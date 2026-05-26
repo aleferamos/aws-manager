@@ -221,12 +221,9 @@
 // ============================================================
 
 .dropdown-panel {
-  position: absolute;
-  z-index: var(--z-dropdown);
-  top: calc(100% + 6px);
-  left: 0;
+  position: fixed;
+  z-index: 320;
 
-  width: 100%;
   min-width: 0;
   max-height: var(--dropdown-panel-max-height, 340px);
   box-sizing: border-box;
@@ -316,8 +313,6 @@
 
 .dropdown-open-up {
   .dropdown-panel {
-    top: auto;
-    bottom: calc(100% + 6px);
     transform-origin: bottom center;
   }
 }

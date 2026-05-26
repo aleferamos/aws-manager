@@ -1,0 +1,187 @@
+:host {
+  display: block;
+}
+
+.cloud-front-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.cloud-front-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cloud-front-detail-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cloud-front-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cloud-front-detail-back:hover {
+  color: var(--color-primary);
+}
+
+.cloud-front-detail-title-block h1 {
+  margin: 4px 0 6px;
+  font-size: 1.85rem;
+  line-height: 1.1;
+}
+
+.cloud-front-detail-title-block p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.cloud-front-detail-eyebrow {
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.cloud-front-detail-empty-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cloud-front-detail-empty-card h2,
+.cloud-front-detail-empty-card p {
+  margin: 0;
+}
+
+.cloud-front-detail-empty-card p {
+  margin-top: 4px;
+  color: var(--color-text-muted);
+}
+
+.cloud-front-detail-empty-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.cloud-front-detail-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cloud-front-detail-tabs button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.cloud-front-detail-tabs button.cloud-front-detail-tab-active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.cloud-front-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.cloud-front-detail-grid div {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-muted);
+}
+
+.cloud-front-detail-grid dt {
+  margin-bottom: 7px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cloud-front-detail-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.cloud-front-invalidation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cloud-front-paths-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cloud-front-paths-field span {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.cloud-front-paths-field textarea {
+  width: 100%;
+  min-height: 132px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.cloud-front-paths-field textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.cloud-front-paths-field small {
+  color: var(--color-text-muted);
+}
+
+.cloud-front-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .cloud-front-detail-header,
+  .cloud-front-detail-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cloud-front-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

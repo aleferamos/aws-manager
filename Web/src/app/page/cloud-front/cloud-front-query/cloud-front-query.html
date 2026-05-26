@@ -1,0 +1,207 @@
+<section class="cloud-front-page">
+  <header class="cloud-front-header">
+    <div class="cloud-front-title-block">
+      <span class="cloud-front-eyebrow">{{ t.eyebrow }}</span>
+      <h1>{{ t.title }}</h1>
+      <p>{{ t.subtitle }}</p>
+    </div>
+
+    <app-button
+      [ariaLabel]="t.reload"
+      icon="refresh"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="loading"
+      [disabled]="!selectedCredential"
+      (pressed)="reload()"
+    />
+  </header>
+
+  @if (!selectedCredential) {
+    <app-card class="cloud-front-empty-card" padding="lg" [outlined]="true">
+      <span class="cloud-front-empty-icon" aria-hidden="true">
+        <span class="material-symbols-rounded">vpn_key_off</span>
+      </span>
+
+      <div class="cloud-front-empty-copy">
+        <h2>{{ t.emptyCredential.title }}</h2>
+        <p>{{ t.emptyCredential.description }}</p>
+      </div>
+    </app-card>
+  } @else {
+    <div class="cloud-front-stats">
+      <app-card class="cloud-front-stat-card" [compact]="true">
+        <div class="cloud-front-stat-content">
+          <span class="cloud-front-stat-icon cloud-front-stat-icon-brand" aria-hidden="true">
+            <span class="material-symbols-rounded">cloud</span>
+          </span>
+
+          <span class="cloud-front-stat-label">{{ t.stats.total }}</span>
+          <strong class="cloud-front-stat-value">{{ totalDistributions }}</strong>
+        </div>
+      </app-card>
+
+      <app-card class="cloud-front-stat-card" [compact]="true">
+        <div class="cloud-front-stat-content">
+          <span class="cloud-front-stat-icon cloud-front-stat-icon-success" aria-hidden="true">
+            <span class="material-symbols-rounded">check_circle</span>
+          </span>
+
+          <span class="cloud-front-stat-label">{{ t.stats.enabled }}</span>
+          <strong class="cloud-front-stat-value">{{ enabledDistributions }}</strong>
+        </div>
+      </app-card>
+    </div>
+
+    <app-card class="cloud-front-table-card" padding="lg" [outlined]="true">
+      <div class="cloud-front-context">
+        <span class="material-symbols-rounded" aria-hidden="true">vpn_key</span>
+        <strong>{{ selectedCredential.name }}</strong>
+        <span>Global</span>
+      </div>
+
+      <div class="cloud-front-table-toolbar">
+        <app-input
+          name="distributionFilter"
+          type="search"
+          icon="search"
+          [ngModel]="distributionFilter"
+          [placeholder]="t.search.placeholder"
+          [ariaLabel]="t.search.ariaLabel"
+          autocomplete="off"
+          (ngModelChange)="handleDistributionFilterChange($event)"
+        />
+      </div>
+
+      <app-table
+        rowKey="id"
+        [columns]="columns"
+        [data]="tableRows"
+        [loading]="loading"
+        [loadingLabel]="t.table.loading"
+        [emptyTitle]="t.table.emptyTitle"
+        [emptyDescription]="t.table.emptyDescription"
+        [paginator]="true"
+        [page]="page"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        [pageSizeLabel]="t.table.rowsPerPage"
+        [paginatorInfoTemplate]="t.table.showing"
+        [firstPageLabel]="t.table.firstPage"
+        [previousPageLabel]="t.table.previousPage"
+        [nextPageLabel]="t.table.nextPage"
+        [lastPageLabel]="t.table.lastPage"
+        (cellSelected)="handleCellSelected($event)"
+        (pageChange)="handlePageChange($event)"
+      />
+    </app-card>
+  }
+
+  <app-dialog
+    [open]="detailDialogOpen"
+    [title]="detailTitle"
+    [subtitle]="detailT.subtitle"
+    [closeAriaLabel]="detailT.close"
+    icon="cloud"
+    size="xl"
+    [closeOnBackdrop]="!createInvalidationLoading"
+    (closed)="closeDetailDialog()"
+  >
+    <div class="cloud-front-detail-modal">
+      <div class="cloud-front-detail-toolbar">
+        <div class="cloud-front-detail-tabs">
+          <button
+            type="button"
+            [class.cloud-front-detail-tab-active]="activeDetailTab === 'overview'"
+            (click)="setDetailTab('overview')"
+          >
+            {{ detailT.tabs.overview }}
+          </button>
+
+          <button
+            type="button"
+            [class.cloud-front-detail-tab-active]="activeDetailTab === 'invalidations'"
+            (click)="setDetailTab('invalidations')"
+          >
+            {{ detailT.tabs.invalidations }}
+          </button>
+        </div>
+
+        <app-button
+          [ariaLabel]="detailT.reload"
+          icon="refresh"
+          severity="secondary"
+          [outlined]="true"
+          [loading]="detailLoading || invalidationsLoading"
+          [disabled]="!selectedCredential"
+          (pressed)="reloadDetail()"
+        />
+      </div>
+
+      @if (activeDetailTab === 'overview') {
+        <dl class="cloud-front-detail-grid">
+          @for (field of overviewFields; track field.label) {
+            <div>
+              <dt>{{ field.label }}</dt>
+              <dd>{{ field.value }}</dd>
+            </div>
+          }
+        </dl>
+      } @else {
+        <form class="cloud-front-invalidation-form" (ngSubmit)="createInvalidation()">
+          <div class="cloud-front-paths-field">
+            <label for="cloudFrontInvalidationPaths">{{ detailT.form.pathsLabel }}</label>
+            <textarea
+              id="cloudFrontInvalidationPaths"
+              name="invalidationPaths"
+              [(ngModel)]="invalidationPaths"
+              [placeholder]="detailT.form.pathsPlaceholder"
+              rows="4"
+            ></textarea>
+            <small>{{ detailT.form.pathsHelper }}</small>
+          </div>
+
+          <div class="cloud-front-invalidation-side">
+            <app-input
+              name="callerReference"
+              [(ngModel)]="callerReference"
+              [label]="detailT.form.callerReferenceLabel"
+              [placeholder]="detailT.form.callerReferencePlaceholder"
+              icon="tag"
+              autocomplete="off"
+            />
+
+            <app-button
+              type="submit"
+              [label]="detailT.createInvalidation"
+              icon="cached"
+              [loading]="createInvalidationLoading"
+              [disabled]="createInvalidationLoading"
+            />
+          </div>
+        </form>
+
+        <app-table
+          rowKey="id"
+          [columns]="invalidationColumns"
+          [data]="invalidationRows"
+          [loading]="invalidationsLoading"
+          [loadingLabel]="detailT.table.loading"
+          [emptyTitle]="detailT.table.emptyTitle"
+          [emptyDescription]="detailT.table.emptyDescription"
+          [paginator]="true"
+          [page]="invalidationsPage"
+          [pageSize]="invalidationsPageSize"
+          [pageSizeOptions]="invalidationsPageSizeOptions"
+          [pageSizeLabel]="detailT.table.rowsPerPage"
+          [paginatorInfoTemplate]="detailT.table.showing"
+          [firstPageLabel]="detailT.table.firstPage"
+          [previousPageLabel]="detailT.table.previousPage"
+          [nextPageLabel]="detailT.table.nextPage"
+          [lastPageLabel]="detailT.table.lastPage"
+          (pageChange)="handleInvalidationsPageChange($event)"
+        />
+      }
+    </div>
+  </app-dialog>
+</section>

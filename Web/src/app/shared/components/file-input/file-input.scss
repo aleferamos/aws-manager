@@ -1,7 +1,3 @@
-// ============================================================
-// AWS Manager Design System - File Input Component
-// ============================================================
-
 .file-input-field {
   display: inline-flex;
   flex-direction: column;
@@ -17,6 +13,11 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   line-height: 1.2;
+}
+
+.file-input-picker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .file-input-control {

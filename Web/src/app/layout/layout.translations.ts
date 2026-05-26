@@ -21,6 +21,7 @@ export interface LayoutTranslation {
     ec2Instances: string;
     securityGroups: string;
     s3: string;
+    cloudFront: string;
     adminArea: string;
     users: string;
     credentials: string;
@@ -61,6 +62,7 @@ export const layoutTranslations: Record<AppLanguage, LayoutTranslation> = {
       ec2Instances: 'Instances',
       securityGroups: 'Security Groups',
       s3: 'S3 Buckets',
+      cloudFront: 'CloudFront',
       adminArea: 'Admin Area',
       users: 'Users',
       credentials: 'Credentials',
@@ -100,6 +102,7 @@ export const layoutTranslations: Record<AppLanguage, LayoutTranslation> = {
       ec2Instances: 'Instancias',
       securityGroups: 'Security Groups',
       s3: 'S3 Buckets',
+      cloudFront: 'CloudFront',
       adminArea: 'Área administrativa',
       users: 'Usuários',
       credentials: 'Credenciais',

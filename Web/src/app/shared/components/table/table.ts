@@ -21,6 +21,7 @@ export interface TableColumn {
   width?: string;
   badgeSeverity?: BadgeSeverity;
   badgeSeverityField?: string;
+  badgeLoadingField?: string;
   format?: (value: unknown, row: TableRow) => string;
   link?: (value: unknown, row: TableRow) => TableColumnLink;
 }
@@ -190,6 +191,10 @@ export class Table {
     }
 
     return 'secondary';
+  }
+
+  isBadgeLoading(row: TableRow, column: TableColumn): boolean {
+    return column.badgeLoadingField ? Boolean(row[column.badgeLoadingField]) : false;
   }
 
   getCellLink(row: TableRow, column: TableColumn): TableColumnLink | null {

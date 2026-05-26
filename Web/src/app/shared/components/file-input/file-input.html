@@ -5,21 +5,25 @@
     </label>
   }
 
-  <button
-    type="button"
-    [ngClass]="classes"
-    [disabled]="disabled"
-    [attr.aria-label]="ariaLabel || label || chooseLabel"
-    (click)="openPicker()"
+  <div
+    class="file-input-picker-row"
   >
-    <span class="material-symbols-rounded file-input-icon" aria-hidden="true">
-      {{ icon }}
-    </span>
+    <button
+      type="button"
+      [ngClass]="classes"
+      [disabled]="disabled"
+      [attr.aria-label]="ariaLabel || label || chooseLabel"
+      (click)="handlePickerClick($event)"
+    >
+      <span class="material-symbols-rounded file-input-icon" aria-hidden="true">
+        {{ icon }}
+      </span>
 
-    <span class="file-input-name">{{ fileName }}</span>
+      <span class="file-input-name">{{ fileName }}</span>
 
-    <span class="file-input-action">{{ chooseLabel }}</span>
-  </button>
+      <span class="file-input-action">{{ chooseLabel }}</span>
+    </button>
+  </div>
 
   <input
     #nativeInput

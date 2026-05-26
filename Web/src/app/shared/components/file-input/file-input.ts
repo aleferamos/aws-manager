@@ -32,6 +32,7 @@ export class FileInput implements OnChanges {
   @Input() file: File | null = null;
   @Input() files: File[] = [];
   @Input() multiple = false;
+  @Input() allowDirectory = false;
   @Input() multipleSelectedLabel = '{count} files selected';
   @Input() id = `file-input-${Math.random().toString(36).slice(2, 9)}`;
   @Input() ariaLabel?: string;
@@ -75,7 +76,19 @@ export class FileInput implements OnChanges {
     ].filter(Boolean);
   }
 
-  openPicker(): void {
+  handlePickerClick(event: Event): void {
+    event.stopPropagation();
+
+    if (this.disabled) {
+      return;
+    }
+
+    this.openPicker();
+  }
+
+  openPicker(event?: Event): void {
+    event?.stopPropagation();
+
     if (this.disabled) {
       return;
     }

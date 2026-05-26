@@ -31,6 +31,33 @@ import { S3BucketItem, S3ObjectItem, S3Service } from '../../../shared/services/
 import { ToastService } from '../../../shared/services/toast.service';
 import { s3QueryTranslations } from './s3-query.translations';
 
+type UploadFile = File & { awsManagerRelativePath?: string };
+
+interface DroppedFileSystemEntry {
+  isFile: boolean;
+  isDirectory: boolean;
+  name: string;
+}
+
+interface DroppedFileSystemFileEntry extends DroppedFileSystemEntry {
+  file(successCallback: (file: File) => void, errorCallback?: (error: DOMException) => void): void;
+}
+
+interface DroppedFileSystemDirectoryEntry extends DroppedFileSystemEntry {
+  createReader(): DroppedFileSystemDirectoryReader;
+}
+
+interface DroppedFileSystemDirectoryReader {
+  readEntries(
+    successCallback: (entries: DroppedFileSystemEntry[]) => void,
+    errorCallback?: (error: DOMException) => void,
+  ): void;
+}
+
+type DroppedDataTransferItem = {
+  webkitGetAsEntry?: () => DroppedFileSystemEntry | null;
+};
+
 @Component({
   selector: 'app-s3-query',
   standalone: true,
@@ -61,6 +88,7 @@ export class S3Query implements OnInit {
   selectedCredential: SelectedCredential | null = null;
   selectedRegion = this.credentialContext.selectedRegion;
   buckets: S3BucketItem[] = [];
+  bucketFilter = '';
   s3Loading = false;
   createDialogOpen = false;
   createLoading = false;
@@ -83,6 +111,7 @@ export class S3Query implements OnInit {
   objectPrefix = '';
   objectKey = '';
   selectedObjectFiles: File[] = [];
+  objectsDropActive = false;
   selectedObjectKeys = new Set<string>();
   objectContextMenu: { object: S3ObjectItem; x: number; y: number } | null = null;
   objectPendingRename: S3ObjectItem | null = null;
@@ -90,6 +119,7 @@ export class S3Query implements OnInit {
   objectsPage = 1;
   objectsPageSize = 10;
   readonly objectsPageSizeOptions = [10, 20, 50];
+  private objectsDragDepth = 0;
 
   ngOnInit(): void {
     combineLatest([
@@ -101,12 +131,14 @@ export class S3Query implements OnInit {
         this.selectedCredential = credential;
         this.selectedRegion = region;
         this.syncAvailabilityZoneWithRegion(region);
+        this.bucketFilter = '';
 
         if (credential) {
           this.loadBuckets(credential, region);
         } else {
           this.buckets = [];
           this.bucketPage = 1;
+          this.bucketFilter = '';
           this.closeCreateDialog();
           this.closeConfirmDialogs();
         }
@@ -164,11 +196,25 @@ export class S3Query implements OnInit {
   }
 
   get tableRows(): TableRow[] {
-    return this.buckets.map((bucket) => ({
+    return this.filteredBuckets.map((bucket) => ({
       ...bucket,
       region: bucket.region || '-',
       creationDateLabel: this.formatDateTime(bucket.creationDate),
     }));
+  }
+
+  get filteredBuckets(): S3BucketItem[] {
+    const terms = this.normalizeSearch(this.bucketFilter).split(' ').filter(Boolean);
+
+    if (!terms.length) {
+      return this.buckets;
+    }
+
+    return this.buckets.filter((bucket) => {
+      const content = this.buildBucketSearchContent(bucket);
+
+      return terms.every((term) => content.includes(term));
+    });
   }
 
   get selectedObjectsLabel(): string {
@@ -362,6 +408,11 @@ export class S3Query implements OnInit {
     this.bucketPage = event.page;
   }
 
+  handleBucketFilterChange(value: string): void {
+    this.bucketFilter = value;
+    this.bucketPage = 1;
+  }
+
   openObjectsDialog(bucket: S3BucketItem): void {
     this.selectedBucket = bucket;
     this.objectsDialogOpen = true;
@@ -378,6 +429,8 @@ export class S3Query implements OnInit {
       return;
     }
 
+    this.objectsDragDepth = 0;
+    this.objectsDropActive = false;
     this.objectsDialogOpen = false;
     this.selectedBucket = null;
     this.objects = [];
@@ -435,8 +488,58 @@ export class S3Query implements OnInit {
     this.selectedObjectFiles = files;
 
     if (files.length === 1 && !this.objectKey.trim()) {
-      this.objectKey = `${this.objectPrefix || ''}${files[0].name}`;
+      this.objectKey = `${this.objectPrefix || ''}${this.getUploadFilePath(files[0])}`;
     }
+  }
+
+  handleObjectsDragEnter(event: DragEvent): void {
+    if (!this.canHandleObjectsDrop(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.objectsDragDepth += 1;
+    this.objectsDropActive = true;
+  }
+
+  handleObjectsDragOver(event: DragEvent): void {
+    if (!this.canHandleObjectsDrop(event)) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+
+    this.objectsDropActive = true;
+  }
+
+  handleObjectsDragLeave(event: DragEvent): void {
+    if (!this.objectsDropActive) {
+      return;
+    }
+
+    event.preventDefault();
+    this.objectsDragDepth = Math.max(0, this.objectsDragDepth - 1);
+
+    if (this.objectsDragDepth === 0) {
+      this.objectsDropActive = false;
+    }
+  }
+
+  async handleObjectsDrop(event: DragEvent): Promise<void> {
+    if (!this.canHandleObjectsDrop(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.objectsDragDepth = 0;
+    this.objectsDropActive = false;
+
+    const files = await this.extractDroppedFiles(event.dataTransfer);
+    this.handleObjectFilesSelected(files);
   }
 
   uploadObject(): void {
@@ -838,18 +941,121 @@ export class S3Query implements OnInit {
 
   private buildUploadObjectKey(file: File): string {
     const requestedKey = this.objectKey.trim();
+    const filePath = this.getUploadFilePath(file);
 
     if (this.selectedObjectFiles.length === 1) {
-      return requestedKey || `${this.objectPrefix || ''}${file.name}`;
+      return requestedKey || `${this.objectPrefix || ''}${filePath}`;
     }
 
     const prefix = requestedKey || this.objectPrefix;
 
     if (!prefix) {
-      return file.name;
+      return filePath;
     }
 
-    return `${prefix.endsWith('/') ? prefix : `${prefix}/`}${file.name}`;
+    return `${prefix.endsWith('/') ? prefix : `${prefix}/`}${filePath}`;
+  }
+
+  private getUploadFilePath(file: File): string {
+    const uploadFile = file as File & {
+      awsManagerRelativePath?: string;
+      webkitRelativePath?: string;
+    };
+
+    return uploadFile.awsManagerRelativePath || uploadFile.webkitRelativePath || file.name;
+  }
+
+  private canHandleObjectsDrop(event: DragEvent): boolean {
+    return (
+      this.objectsDialogOpen &&
+      !this.objectActionLoading &&
+      Array.from(event.dataTransfer?.types ?? []).includes('Files')
+    );
+  }
+
+  private async extractDroppedFiles(dataTransfer: DataTransfer | null): Promise<File[]> {
+    if (!dataTransfer) {
+      return [];
+    }
+
+    const entries: DroppedFileSystemEntry[] = [];
+
+    for (const item of Array.from(dataTransfer.items ?? [])) {
+      const entry = (item as unknown as DroppedDataTransferItem).webkitGetAsEntry?.();
+
+      if (entry) {
+        entries.push(entry);
+      }
+    }
+
+    if (!entries.length) {
+      return Array.from(dataTransfer.files ?? []);
+    }
+
+    const nestedFiles = await Promise.all(entries.map((entry) => this.readDroppedEntry(entry)));
+
+    return nestedFiles.flat();
+  }
+
+  private async readDroppedEntry(
+    entry: DroppedFileSystemEntry,
+    parentPath = '',
+  ): Promise<File[]> {
+    const relativePath = `${parentPath}${entry.name}`;
+
+    if (entry.isFile) {
+      const file = await this.readDroppedFile(entry as DroppedFileSystemFileEntry);
+
+      return [this.withUploadRelativePath(file, relativePath)];
+    }
+
+    if (!entry.isDirectory) {
+      return [];
+    }
+
+    const childEntries = await this.readDroppedDirectoryEntries(
+      entry as DroppedFileSystemDirectoryEntry,
+    );
+    const childFiles = await Promise.all(
+      childEntries.map((childEntry) => this.readDroppedEntry(childEntry, `${relativePath}/`)),
+    );
+
+    return childFiles.flat();
+  }
+
+  private readDroppedFile(entry: DroppedFileSystemFileEntry): Promise<File> {
+    return new Promise((resolve, reject) => {
+      entry.file(resolve, reject);
+    });
+  }
+
+  private readDroppedDirectoryEntries(
+    entry: DroppedFileSystemDirectoryEntry,
+  ): Promise<DroppedFileSystemEntry[]> {
+    const reader = entry.createReader();
+    const entries: DroppedFileSystemEntry[] = [];
+
+    return new Promise((resolve, reject) => {
+      const readBatch = () => {
+        reader.readEntries((batch) => {
+          if (!batch.length) {
+            resolve(entries);
+            return;
+          }
+
+          entries.push(...batch);
+          readBatch();
+        }, reject);
+      };
+
+      readBatch();
+    });
+  }
+
+  private withUploadRelativePath(file: File, relativePath: string): File {
+    (file as UploadFile).awsManagerRelativePath = relativePath;
+
+    return file;
   }
 
   private downloadObjects(keys: string[]): void {
@@ -915,6 +1121,23 @@ export class S3Query implements OnInit {
 
   private resolveBucketRegion(bucket: S3BucketItem): string {
     return bucket.region && bucket.region !== '-' ? bucket.region : this.selectedRegion;
+  }
+
+  private buildBucketSearchContent(bucket: S3BucketItem): string {
+    return this.normalizeSearch([
+      bucket.name,
+      bucket.region,
+      bucket.creationDate,
+      this.formatDateTime(bucket.creationDate),
+    ].filter(Boolean).join(' '));
+  }
+
+  private normalizeSearch(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   formatDateTime(value: string | null): string {

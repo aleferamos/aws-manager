@@ -134,8 +134,9 @@
   }
 }
 
-.s3-empty-card {
-  max-width: 720px;
+.s3-table-search {
+  max-width: 420px;
+  margin-bottom: 16px;
 }
 
 .s3-empty-copy {
@@ -262,9 +263,20 @@
 }
 
 .s3-objects {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.s3-objects-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-content: center;
+  border: 2px dashed var(--color-brand-600);
+  pointer-events: none;
 }
 
 .s3-objects-toolbar,

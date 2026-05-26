@@ -1,57 +1,57 @@
 # AWS Manager
 
-Instalacao basica com Docker Compose para subir Postgres, API NestJS e Web Angular.
+Basic Docker Compose setup to run Postgres, the NestJS API, and the Angular Web app.
 
-## Requisitos
+## Requirements
 
-- Docker Desktop instalado e aberto.
+- Docker Desktop installed and running.
 
-## Subir o projeto
+## Run The Project
 
-Crie o arquivo `.env` a partir do exemplo e preencha as configuracoes de e-mail:
+Create a `.env` file from the example and fill in the e-mail settings:
 
 ```powershell
 copy .env.example .env
 ```
 
-Se nao configurar o e-mail, a aplicacao ainda sobe, mas acoes que enviam e-mail exibirao aviso de configuracao ausente.
+If e-mail is not configured, the application still starts, but actions that send e-mails will show a missing configuration warning.
 
 ```powershell
 docker compose --env-file .env up --build
 ```
 
-Depois acesse:
+Then open:
 
 - Web: http://localhost:4501
 - API: http://localhost:4500
 - Postgres: localhost:4502
 
-O banco e inicializado automaticamente na primeira subida usando o script `docker/postgres/init.sql`.
+The database is initialized automatically on the first run using `docker/postgres/init.sql`.
 
-## Versão oficial mais recente
+## Latest Official Version
 
-A versão oficial mais recente está disponível em uma imagem Docker all-in-one, com Web, API e Postgres no mesmo container.
-Use um volume para manter os dados do banco entre atualizacoes e um arquivo `.env` para configurar o envio de e-mail.
-O arquivo `.env` deve existir no diretorio onde voce executar o comando `docker run`.
+The latest official version is available as an all-in-one Docker image with Web, API, and Postgres in the same container.
+Use a volume to keep database data between updates and a `.env` file to configure e-mail delivery.
+The `.env` file must exist in the directory where you run `docker run`.
 
-Crie o `.env` a partir do exemplo:
+Create the `.env` file from the example:
 
 ```bash
 cp .env.example .env
 ```
 
-Depois preencha:
+Then fill in:
 
 ```env
-EMAIL_HOST=smtp.seu-provedor.com
+EMAIL_HOST=smtp.your-provider.com
 EMAIL_PORT=587
-EMAIL_USER=seu-usuario-smtp
-EMAIL_APP_PASSWORD=sua-chave-smtp
-EMAIL_FROM_EMAIL=seu-remetente-verificado
+EMAIL_USER=your-smtp-user
+EMAIL_APP_PASSWORD=your-smtp-key
+EMAIL_FROM_EMAIL=your-verified-sender
 EMAIL_FROM_NAME=AWS Manager
 ```
 
-Para subir:
+Run the container:
 
 ```bash
 docker volume create aws_manager_data
@@ -64,27 +64,27 @@ docker run -d \
   alefepdias/aws-manager:latest
 ```
 
-Ao subir uma versao nova usando o mesmo volume, a imagem aplica automaticamente as migracoes em `Docker/postgres/migrations` que ainda nao foram registradas na tabela `schema_migrations`.
-Para cada release com mudanca de banco, crie um novo arquivo sequencial, por exemplo `002_1_2_0.sql`.
+When running a new version with the same volume, the image automatically applies migrations from `Docker/postgres/migrations` that have not been registered in the `schema_migrations` table yet.
+For each release with database changes, create a new sequential file, for example `002_1_2_0.sql`.
 
 ## E-mail
 
-O envio de e-mail usa variaveis de ambiente e nenhum segredo deve ficar salvo no repositorio.
+E-mail delivery uses environment variables, and no secret should be stored in the repository.
 
-Se quiser habilitar envio de e-mail, copie o exemplo:
+To enable e-mail delivery, copy the example file:
 
 ```powershell
 copy .env.example .env
 ```
 
-Depois preencha `EMAIL_USER`, `EMAIL_APP_PASSWORD` e `EMAIL_FROM_EMAIL` no arquivo `.env`.
-Com Docker Compose, o mesmo comando de desenvolvimento ja carrega as credenciais automaticamente:
+Then fill in `EMAIL_USER`, `EMAIL_APP_PASSWORD`, and `EMAIL_FROM_EMAIL` in the `.env` file.
+With Docker Compose, the development command already loads the credentials automatically:
 
 ```powershell
 docker compose --env-file .env up --build
 ```
 
-Com a imagem unica, use o `--env-file .env`:
+With the all-in-one image, use `--env-file .env`:
 
 ```bash
 docker run -d \
@@ -95,24 +95,24 @@ docker run -d \
   alefepdias/aws-manager:latest
 ```
 
-## Resetar o banco
+## Reset The Database
 
-O dump so roda quando o volume do Postgres esta vazio. Para apagar os dados locais e recriar do zero:
+The dump only runs when the Postgres volume is empty. To delete local data and recreate the database from scratch:
 
 ```powershell
 docker compose down -v
 docker compose up --build
 ```
 
-## Rodar em desenvolvimento sem Docker para API/Web
+## Run API/Web Locally Without Docker
 
-Se quiser usar Docker apenas para o banco:
+If you want to use Docker only for the database:
 
 ```powershell
 docker compose up postgres
 ```
 
-Depois rode a API e o Web nas respectivas pastas:
+Then run the API and Web app from their folders:
 
 ```powershell
 cd Api
