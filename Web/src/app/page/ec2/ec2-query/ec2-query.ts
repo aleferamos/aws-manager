@@ -23,6 +23,7 @@ import {
 } from '../../../shared/services/ec2.service';
 import { LanguageService } from '../../../shared/services/language.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { formatPlatformDateTime } from '../../../shared/utils/date-format.util';
 import { SecurityGroupDetailDialog } from '../../security-groups/security-group-detail-dialog/security-group-detail-dialog';
 
 import { ec2QueryTranslations } from './ec2-query.translations';
@@ -446,22 +447,6 @@ export class Ec2Query implements OnInit {
   }
 
   private formatDateTime(value: string | null | undefined): string {
-    if (!value) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(this.language, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
+    return formatPlatformDateTime(value);
   }
 }

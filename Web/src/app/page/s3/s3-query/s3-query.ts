@@ -29,6 +29,7 @@ import {
 import { LanguageService } from '../../../shared/services/language.service';
 import { S3BucketItem, S3ObjectItem, S3Service } from '../../../shared/services/s3.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { formatPlatformDateTime } from '../../../shared/utils/date-format.util';
 import { s3QueryTranslations } from './s3-query.translations';
 
 type UploadFile = File & { awsManagerRelativePath?: string };
@@ -1141,23 +1142,7 @@ export class S3Query implements OnInit {
   }
 
   formatDateTime(value: string | null): string {
-    if (!value) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(this.language, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
+    return formatPlatformDateTime(value);
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

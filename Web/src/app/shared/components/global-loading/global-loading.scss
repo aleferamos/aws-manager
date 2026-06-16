@@ -142,9 +142,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .global-loading-overlay,
-  .global-loading-card,
-  .global-loading-dot {
+  .global-loading-card {
     animation: none !important;
     transition: none !important;
+  }
+
+  .global-loading-dot {
+    animation: loading-dot-jump 900ms ease-in-out infinite !important;
   }
 }

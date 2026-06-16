@@ -27,6 +27,7 @@ import {
 } from '../../../shared/services/credential-context.service';
 import { LanguageService } from '../../../shared/services/language.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { formatPlatformDateTime } from '../../../shared/utils/date-format.util';
 import { cloudFrontDetailTranslations } from '../cloud-front-detail/cloud-front-detail.translations';
 import { cloudFrontQueryTranslations } from './cloud-front-query.translations';
 
@@ -432,20 +433,7 @@ export class CloudFrontQuery implements OnInit {
   }
 
   private formatDateTime(value: string | null): string {
-    if (!value) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(this.language, {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(date);
+    return formatPlatformDateTime(value);
   }
 
   private buildDistributionSearchContent(distribution: CloudFrontDistributionItem): string {

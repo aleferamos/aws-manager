@@ -39,6 +39,7 @@ import {
   UserService,
   ViewUserResponse,
 } from '../../../../shared/services/user.service';
+import { formatPlatformDateTime } from '../../../../shared/utils/date-format.util';
 
 import { userQueryTranslations } from './user-query.translations';
 
@@ -1058,24 +1059,6 @@ export class UserQuery implements OnInit {
   }
 
   private formatDateTime(value: string | null): string {
-    if (!value) {
-      return '-';
-    }
-
-    const normalizedValue = value.includes('T') ? value : value.replace(' ', 'T');
-    const date = new Date(normalizedValue);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat('en-US', {
-      year: '2-digit',
-      month: 'numeric',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    }).format(date);
+    return formatPlatformDateTime(value);
   }
 }

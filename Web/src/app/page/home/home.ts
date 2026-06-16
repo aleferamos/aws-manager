@@ -14,6 +14,7 @@ import {
 } from '../../shared/services/credential-context.service';
 import { AppLanguage } from '../../shared/config/languages.config';
 import { LanguageService } from '../../shared/services/language.service';
+import { formatPlatformShortDate } from '../../shared/utils/date-format.util';
 import { homeTranslations } from './home.translations';
 
 interface BillingChartSegment {
@@ -294,15 +295,6 @@ export class Home implements OnInit {
   }
 
   private formatShortDate(value: string): string {
-    const date = new Date(`${value}T00:00:00`);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(this.language, {
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+    return formatPlatformShortDate(value);
   }
 }

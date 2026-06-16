@@ -230,8 +230,9 @@
 
   padding: 5px;
 
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -245,9 +246,6 @@
 }
 
 .dropdown-search {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   margin-bottom: 4px;
   padding: 7px 8px;
 
@@ -258,6 +256,12 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   background: var(--surface-card);
+}
+
+.dropdown-options {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .dropdown-search-icon {
@@ -340,8 +344,8 @@
 
   cursor: pointer;
 
-  opacity: 0;
-  transform: translateY(-8px);
+  opacity: 1;
+  transform: none;
 
   animation: dropdown-option-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(var(--option-index, 0) * 35ms);

@@ -100,55 +100,57 @@
           </div>
         }
 
-        @for (option of filteredOptions; track option.value; let i = $index) {
-          <button
-            type="button"
-            class="dropdown-option"
-            [style.--option-index]="i"
-            [class.dropdown-option-selected]="isSelected(option)"
-            [class.dropdown-option-disabled]="option.disabled"
-            [disabled]="option.disabled"
-            role="option"
-            [attr.aria-selected]="isSelected(option)"
-            (click)="selectOption(option)"
-          >
-            <span class="dropdown-option-content">
-              @if (option.flag) {
-                <span class="dropdown-flag" aria-hidden="true">
-                  {{ option.flag }}
-                </span>
-              }
-
-              @if (option.icon) {
-                <span class="material-symbols-rounded dropdown-option-icon" aria-hidden="true">
-                  {{ option.icon }}
-                </span>
-              }
-
-              <span class="dropdown-option-texts">
-                <span class="dropdown-option-label">
-                  {{ option.label }}
-                </span>
-
-                @if (showDescription && option.description) {
-                  <span class="dropdown-option-description">
-                    {{ option.description }}
+        <div class="dropdown-options">
+          @for (option of filteredOptions; track option.value; let i = $index) {
+            <button
+              type="button"
+              class="dropdown-option"
+              [style.--option-index]="i"
+              [class.dropdown-option-selected]="isSelected(option)"
+              [class.dropdown-option-disabled]="option.disabled"
+              [disabled]="option.disabled"
+              role="option"
+              [attr.aria-selected]="isSelected(option)"
+              (click)="selectOption(option)"
+            >
+              <span class="dropdown-option-content">
+                @if (option.flag) {
+                  <span class="dropdown-flag" aria-hidden="true">
+                    {{ option.flag }}
                   </span>
                 }
-              </span>
-            </span>
 
-            @if (isSelected(option)) {
-              <span class="material-symbols-rounded dropdown-check" aria-hidden="true">
-                check
+                @if (option.icon) {
+                  <span class="material-symbols-rounded dropdown-option-icon" aria-hidden="true">
+                    {{ option.icon }}
+                  </span>
+                }
+
+                <span class="dropdown-option-texts">
+                  <span class="dropdown-option-label">
+                    {{ option.label }}
+                  </span>
+
+                  @if (showDescription && option.description) {
+                    <span class="dropdown-option-description">
+                      {{ option.description }}
+                    </span>
+                  }
+                </span>
               </span>
-            }
-          </button>
-        } @empty {
-          <div class="dropdown-empty">
-            {{ emptySearchLabel }}
-          </div>
-        }
+
+              @if (isSelected(option)) {
+                <span class="material-symbols-rounded dropdown-check" aria-hidden="true">
+                  check
+                </span>
+              }
+            </button>
+          } @empty {
+            <div class="dropdown-empty">
+              {{ emptySearchLabel }}
+            </div>
+          }
+        </div>
       </div>
     }
   </div>

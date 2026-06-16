@@ -27,6 +27,7 @@ import {
 } from '../../../shared/services/credential-context.service';
 import { LanguageService } from '../../../shared/services/language.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { formatPlatformDateTime } from '../../../shared/utils/date-format.util';
 import { cloudFrontDetailTranslations } from './cloud-front-detail.translations';
 
 type DetailTab = 'overview' | 'invalidations';
@@ -265,19 +266,6 @@ export class CloudFrontDetail implements OnInit {
   }
 
   private formatDateTime(value: string | null): string {
-    if (!value) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(this.language, {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(date);
+    return formatPlatformDateTime(value);
   }
 }
